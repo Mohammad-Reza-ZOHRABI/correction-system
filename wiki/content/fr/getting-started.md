@@ -264,7 +264,7 @@ git push origin main
 
 - 📖 Consultez la [FAQ](/page/faq)
 - 💡 Voir les [Exemples de projets](/page/project-examples)
-- 📧 Contactez : admin@zohrabi.cloud
+- 📧 Contactez : Reza@zohrabi.fr
 
 ---
 

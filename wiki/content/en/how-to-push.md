@@ -422,7 +422,7 @@ git push origin main
 
 - 📖 Check the [FAQ](/page/faq)
 - 💡 [Official Git Guide](https://git-scm.com/book/en/v2)
-- 📧 Contact: admin@zohrabi.cloud
+- 📧 Contact: Reza@zohrabi.fr
 
 ---
 
