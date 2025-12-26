@@ -1,0 +1,96 @@
+{
+  "en": {
+    "common": {
+      "search": "Search",
+      "read_more": "Read more",
+      "need_help": "Need help?",
+      "contact_instructor": "If you encounter difficulties, first check the",
+      "faq": "FAQ",
+      "for_questions": "For any questions, contact your instructor at"
+    },
+    "home": {
+      "title": "Containerization Technologies",
+      "subtitle": "Complete documentation to succeed in your assignments",
+      "search_placeholder": "Search in documentation...",
+      "quick_links": {
+        "gitea": {
+          "title": "Gitea",
+          "desc": "Access your repositories"
+        },
+        "grades": {
+          "title": "Grades",
+          "desc": "View your results"
+        },
+        "getting_started": {
+          "title": "Getting Started",
+          "desc": "Beginner's guide"
+        },
+        "faq": {
+          "title": "FAQ",
+          "desc": "Frequently asked questions"
+        }
+      }
+    },
+    "footer": {
+      "title": "Containerization Technologies",
+      "description": "Docker containerization course with automatic correction",
+      "quick_links": "Quick Links",
+      "support": "Support",
+      "copyright": "Reza Zohrabi - Containerization Technologies"
+    },
+    "categories": {
+      "🚀 Démarrage": "🚀 Getting Started",
+      "📚 Ressources": "📚 Resources",
+      "❓ Aide": "❓ Help",
+      "🛠️ Outils": "🛠️ Tools",
+      "🎓 Avancé": "🎓 Advanced"
+    }
+  },
+  "fr": {
+    "common": {
+      "search": "Rechercher",
+      "read_more": "Lire la suite",
+      "need_help": "Besoin d'aide ?",
+      "contact_instructor": "Si vous rencontrez des difficultés, consultez d'abord la",
+      "faq": "FAQ",
+      "for_questions": "Pour toute question, contactez votre enseignant à"
+    },
+    "home": {
+      "title": "Technologies de Containérisation",
+      "subtitle": "Documentation complète pour réussir vos TDs",
+      "search_placeholder": "Rechercher dans la documentation...",
+      "quick_links": {
+        "gitea": {
+          "title": "Gitea",
+          "desc": "Accéder à vos repositories"
+        },
+        "grades": {
+          "title": "Notes",
+          "desc": "Consulter vos résultats"
+        },
+        "getting_started": {
+          "title": "Premiers Pas",
+          "desc": "Guide de démarrage"
+        },
+        "faq": {
+          "title": "FAQ",
+          "desc": "Questions fréquentes"
+        }
+      }
+    },
+    "footer": {
+      "title": "Technologies de Containérisation",
+      "description": "Cours de containerisation Docker avec correction automatique",
+      "quick_links": "Liens rapides",
+      "support": "Support",
+      "copyright": "Reza Zohrabi - Containerization Technologies"
+    },
+    "categories": {
+      "🚀 Démarrage": "🚀 Démarrage",
+      "📚 Ressources": "📚 Ressources",
+      "❓ Aide": "❓ Aide",
+      "🛠️ Outils": "🛠️ Outils",
+      "🎓 Avancé": "🎓 Avancé"
+    }
+  }
+}

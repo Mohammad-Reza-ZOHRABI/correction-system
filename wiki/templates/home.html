@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <title>{{ t('home.title') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -27,25 +27,34 @@
     </style>
 </head>
 <body class="bg-gray-50">
-    
+
     <!-- Header -->
     <header class="gradient-bg text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="text-center animate-fade-in">
+                <!-- Language Selector -->
+                <div class="absolute top-4 right-4">
+                    <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
+                        <a href="/set-language/en" class="{% if lang == 'en' %}font-bold{% endif %} hover:text-yellow-200 transition">EN</a>
+                        <span>|</span>
+                        <a href="/set-language/fr" class="{% if lang == 'fr' %}font-bold{% endif %} hover:text-yellow-200 transition">FR</a>
+                    </div>
+                </div>
+
                 <h1 class="text-5xl font-bold mb-4">
-                    🐳 Technologies de Containérisation
+                    🐳 {{ t('home.title') }}
                 </h1>
                 <p class="text-xl text-blue-100 mb-8">
-                    Documentation complète pour réussir vos TDs
+                    {{ t('home.subtitle') }}
                 </p>
-                
+
                 <!-- Search bar -->
                 <div class="max-w-2xl mx-auto">
                     <form action="/search" method="get" class="relative">
-                        <input 
-                            type="text" 
-                            name="q" 
-                            placeholder="Rechercher dans la documentation..." 
+                        <input
+                            type="text"
+                            name="q"
+                            placeholder="{{ t('home.search_placeholder') }}"
                             class="w-full px-6 py-4 rounded-full text-gray-900 text-lg focus:outline-none focus:ring-4 focus:ring-blue-300"
                         >
                         <button type="submit" class="absolute right-2 top-2 bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition">
@@ -62,33 +71,33 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <a href="https://git.zohrabi.cloud" target="_blank" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">📦</div>
-                <h3 class="font-bold text-gray-900 mb-2">Gitea</h3>
-                <p class="text-sm text-gray-600">Accéder à vos repositories</p>
+                <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.gitea.title') }}</h3>
+                <p class="text-sm text-gray-600">{{ t('home.quick_links.gitea.desc') }}</p>
             </a>
-            
+
             <a href="https://grades.zohrabi.cloud" target="_blank" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">📊</div>
-                <h3 class="font-bold text-gray-900 mb-2">Notes</h3>
-                <p class="text-sm text-gray-600">Consulter vos résultats</p>
+                <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.grades.title') }}</h3>
+                <p class="text-sm text-gray-600">{{ t('home.quick_links.grades.desc') }}</p>
             </a>
-            
+
             <a href="/page/premiers-pas" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">🚀</div>
-                <h3 class="font-bold text-gray-900 mb-2">Premiers Pas</h3>
-                <p class="text-sm text-gray-600">Guide de démarrage</p>
+                <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.getting_started.title') }}</h3>
+                <p class="text-sm text-gray-600">{{ t('home.quick_links.getting_started.desc') }}</p>
             </a>
-            
+
             <a href="/page/faq" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">❓</div>
-                <h3 class="font-bold text-gray-900 mb-2">FAQ</h3>
-                <p class="text-sm text-gray-600">Questions fréquentes</p>
+                <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.faq.title') }}</h3>
+                <p class="text-sm text-gray-600">{{ t('home.quick_links.faq.desc') }}</p>
             </a>
         </div>
     </div>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        
+
         <!-- Categories -->
         {% for category, pages in categories.items() %}
         <div class="mb-12 animate-fade-in">
@@ -96,7 +105,7 @@
                 <span class="w-2 h-8 bg-blue-600 mr-4 rounded"></span>
                 {{ category }}
             </h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for page in pages %}
                 <a href="/page/{{ page.slug }}" class="bg-white rounded-lg shadow-md hover:shadow-xl transition p-6 card-hover">
@@ -107,7 +116,7 @@
                     <p class="text-gray-600">{{ page.description }}</p>
                     {% endif %}
                     <div class="mt-4 text-blue-600 font-medium">
-                        Lire la suite <i class="fas fa-arrow-right ml-1"></i>
+                        {{ t('common.read_more') }} <i class="fas fa-arrow-right ml-1"></i>
                     </div>
                 </a>
                 {% endfor %}
@@ -123,11 +132,11 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-blue-900 mb-2">
-                        Besoin d'aide ?
+                        {{ t('common.need_help') }}
                     </h3>
                     <p class="text-blue-800">
-                        Si vous rencontrez des difficultés, consultez d'abord la <a href="/page/faq" class="underline font-semibold">FAQ</a>. 
-                        Pour toute question, contactez votre enseignant à <a href="mailto:admin@zohrabi.cloud" class="underline font-semibold">Reza@zohrabi.fr</a>
+                        {{ t('common.contact_instructor') }} <a href="/page/faq" class="underline font-semibold">{{ t('common.faq') }}</a>.
+                        {{ t('common.for_questions') }} <a href="mailto:admin@zohrabi.cloud" class="underline font-semibold">Reza@zohrabi.fr</a>
                     </p>
                 </div>
             </div>
@@ -140,31 +149,31 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
-                    <h4 class="text-lg font-bold mb-4">Technologies de Containérisation</h4>
+                    <h4 class="text-lg font-bold mb-4">{{ t('footer.title') }}</h4>
                     <p class="text-gray-400">
-                        Cours de containerisation Docker avec correction automatique
+                        {{ t('footer.description') }}
                     </p>
                 </div>
                 <div>
-                    <h4 class="text-lg font-bold mb-4">Liens rapides</h4>
+                    <h4 class="text-lg font-bold mb-4">{{ t('footer.quick_links') }}</h4>
                     <ul class="space-y-2 text-gray-400">
                         <li><a href="https://git.zohrabi.cloud" class="hover:text-white transition">Gitea</a></li>
-                        <li><a href="https://grades.zohrabi.cloud" class="hover:text-white transition">Dashboard Notes</a></li>
+                        <li><a href="https://grades.zohrabi.cloud" class="hover:text-white transition">{{ t('home.quick_links.grades.title') }}</a></li>
                         <li><a href="https://mail.zohrabi.cloud" class="hover:text-white transition">Mailpit</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="text-lg font-bold mb-4">Support</h4>
+                    <h4 class="text-lg font-bold mb-4">{{ t('footer.support') }}</h4>
                     <p class="text-gray-400">
                         <i class="fas fa-envelope mr-2"></i> Reza@zohrabi.fr
                     </p>
                     <p class="text-gray-400 mt-2">
-                        <i class="fas fa-book mr-2"></i> <a href="/page/faq" class="hover:text-white transition">FAQ</a>
+                        <i class="fas fa-book mr-2"></i> <a href="/page/faq" class="hover:text-white transition">{{ t('common.faq') }}</a>
                     </p>
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; Reza Zohrabi - Containerization Technologies</p>
+                <p>&copy; {{ t('footer.copyright') }}</p>
             </div>
         </div>
     </footer>
