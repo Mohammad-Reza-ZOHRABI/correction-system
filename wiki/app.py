@@ -123,10 +123,16 @@ def get_translation(lang: str, key: str):
         value = value.get(k, key)
     return value
 
-def get_page_content(page_name: str) -> Dict:
-    """Charge le contenu d'une page markdown"""
-    page_path = CONTENT_DIR / f"{page_name}.md"
+def get_page_content(page_name: str, lang: str = "en") -> Dict:
+    """Charge le contenu d'une page markdown pour une langue donnée"""
+    # Essayer d'abord avec la langue demandée
+    page_path = CONTENT_DIR / lang / f"{page_name}.md"
 
+    # Si le fichier n'existe pas dans cette langue, essayer avec la langue par défaut
+    if not page_path.exists():
+        page_path = CONTENT_DIR / DEFAULT_LANGUAGE / f"{page_name}.md"
+
+    # Si toujours pas trouvé, retourner None
     if not page_path.exists():
         return None
 
@@ -143,14 +149,21 @@ def get_page_content(page_name: str) -> Dict:
         "metadata": post.metadata
     }
 
-def get_all_pages() -> List[Dict]:
-    """Liste toutes les pages disponibles"""
+def get_all_pages(lang: str = "en") -> List[Dict]:
+    """Liste toutes les pages disponibles pour une langue donnée"""
     pages = []
 
-    if not CONTENT_DIR.exists():
+    # Chercher dans le répertoire de la langue
+    lang_dir = CONTENT_DIR / lang
+
+    if not lang_dir.exists():
+        # Fallback à la langue par défaut
+        lang_dir = CONTENT_DIR / DEFAULT_LANGUAGE
+
+    if not lang_dir.exists():
         return pages
 
-    for md_file in CONTENT_DIR.glob("*.md"):
+    for md_file in lang_dir.glob("*.md"):
         post = frontmatter.load(md_file)
         pages.append({
             "slug": md_file.stem,
@@ -181,7 +194,7 @@ async def home(request: Request, lang: str):
         lang = DEFAULT_LANGUAGE
         return RedirectResponse(url=f"/{lang}/", status_code=302)
 
-    pages = get_all_pages()
+    pages = get_all_pages(lang)
 
     # Grouper par catégorie et traduire les noms de catégories
     categories = {}
@@ -223,7 +236,7 @@ async def show_page(request: Request, lang: str, page_name: str):
         lang = DEFAULT_LANGUAGE
         return RedirectResponse(url=f"/{lang}/page/{page_name}", status_code=302)
 
-    content = get_page_content(page_name)
+    content = get_page_content(page_name, lang)
 
     if not content:
         return templates.TemplateResponse("404.html", {
@@ -233,7 +246,7 @@ async def show_page(request: Request, lang: str, page_name: str):
         }, status_code=404)
 
     # Liste des pages pour la navigation
-    all_pages = get_all_pages()
+    all_pages = get_all_pages(lang)
 
     # Generate hreflang links
     hreflang_links = generate_hreflang_links(request, f"page/{page_name}")
@@ -317,7 +330,12 @@ async def search(request: Request, lang: str, q: str = ""):
     results = []
     query = q.lower()
 
-    for md_file in CONTENT_DIR.glob("*.md"):
+    # Chercher dans le répertoire de la langue
+    lang_dir = CONTENT_DIR / lang
+    if not lang_dir.exists():
+        lang_dir = CONTENT_DIR / DEFAULT_LANGUAGE
+
+    for md_file in lang_dir.glob("*.md"):
         post = frontmatter.load(md_file)
         content = post.content.lower()
         title = post.get("title", "").lower()
