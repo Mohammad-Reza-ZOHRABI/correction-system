@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Technologies de Containérisation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .prose {
+            max-width: 100%;
+        }
+        .prose h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #1a202c;
+        }
+        .prose h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #2d3748;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .prose h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #4a5568;
+        }
+        .prose p {
+            margin-bottom: 1rem;
+            line-height: 1.75;
+            color: #4a5568;
+        }
+        .prose pre {
+            background-color: #2d3748;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        .prose code {
+            background-color: #edf2f7;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            color: #e53e3e;
+        }
+        .prose pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #f7fafc;
+        }
+        .prose ul, .prose ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        .prose li {
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+        }
+        .prose a {
+            color: #3182ce;
+            text-decoration: underline;
+        }
+        .prose a:hover {
+            color: #2c5282;
+        }
+        .prose blockquote {
+            border-left: 4px solid #4299e1;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+        .prose table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .prose th, .prose td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .prose th {
+            background-color: #edf2f7;
+            font-weight: 600;
+        }
+        .admonition {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+            border-left: 4px solid;
+        }
+        .admonition.note {
+            background-color: #ebf8ff;
+            border-color: #4299e1;
+        }
+        .admonition.warning {
+            background-color: #fffaf0;
+            border-color: #ed8936;
+        }
+        .admonition.tip {
+            background-color: #f0fff4;
+            border-color: #48bb78;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-3 hover:opacity-80 transition">
+                    <i class="fas fa-home text-2xl"></i>
+                    <span class="text-xl font-semibold">Accueil</span>
+                </a>
+                <div class="flex items-center space-x-6">
+                    <a href="https://git.zohrabi.cloud" target="_blank" class="hover:opacity-80 transition">
+                        <i class="fas fa-code-branch mr-2"></i>Gitea
+                    </a>
+                    <a href="https://grades.zohrabi.cloud" target="_blank" class="hover:opacity-80 transition">
+                        <i class="fas fa-chart-bar mr-2"></i>Notes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">{{ title }}</h1>
+            {% if description %}
+            <p class="text-xl text-gray-600">{{ description }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Breadcrumb -->
+        <nav class="mb-8">
+            <ol class="flex items-center space-x-2 text-sm text-gray-600">
+                <li><a href="/" class="hover:text-blue-600">Accueil</a></li>
+                <li><i class="fas fa-chevron-right text-xs"></i></li>
+                <li class="text-gray-900">{{ title }}</li>
+            </ol>
+        </nav>
+
+        <!-- Content -->
+        <article class="bg-white rounded-lg shadow-lg p-8">
+            <div class="prose">
+                {{ content | safe }}
+            </div>
+        </article>
+
+        <!-- Navigation -->
+        <div class="mt-12 bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-book mr-2"></i>Autres pages
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for page in all_pages[:6] %}
+                <a href="/page/{{ page.slug }}" class="text-blue-600 hover:text-blue-800 hover:underline">
+                    <i class="fas fa-file-alt mr-2"></i>{{ page.title }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center text-gray-400">
+                <p>&copy; 2024 Professeur Zohrabi - Technologies de Containérisation</p>
+                <p class="mt-2">
+                    <a href="/" class="hover:text-white transition">Accueil</a> |
+                    <a href="/page/faq" class="hover:text-white transition">FAQ</a> |
+                    <a href="mailto:admin@zohrabi.cloud" class="hover:text-white transition">Contact</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Highlight code blocks
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+    </script>
+
+</body>
+</html>
