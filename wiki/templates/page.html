@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}">
+<html lang="{{ lang }}" class="transition-colors duration-200">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,12 +12,22 @@
     <link rel="canonical" href="{{ current_url }}">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Enable dark mode support in Tailwind
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script src="/static/js/darkmode.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #4c51bf 0%, #5b21b6 100%);
         }
         .prose {
             max-width: 100%;
@@ -29,6 +39,9 @@
             margin-bottom: 1rem;
             color: #1a202c;
         }
+        .dark .prose h1 {
+            color: #f7fafc;
+        }
         .prose h2 {
             font-size: 2rem;
             font-weight: 600;
@@ -38,6 +51,10 @@
             border-bottom: 2px solid #e2e8f0;
             padding-bottom: 0.5rem;
         }
+        .dark .prose h2 {
+            color: #e2e8f0;
+            border-bottom-color: #4a5568;
+        }
         .prose h3 {
             font-size: 1.5rem;
             font-weight: 600;
@@ -45,10 +62,16 @@
             margin-bottom: 0.75rem;
             color: #4a5568;
         }
+        .dark .prose h3 {
+            color: #cbd5e0;
+        }
         .prose p {
             margin-bottom: 1rem;
             line-height: 1.75;
             color: #4a5568;
+        }
+        .dark .prose p {
+            color: #cbd5e0;
         }
         .prose pre {
             background-color: #2d3748;
@@ -57,12 +80,19 @@
             overflow-x: auto;
             margin: 1rem 0;
         }
+        .dark .prose pre {
+            background-color: #1a202c;
+        }
         .prose code {
             background-color: #edf2f7;
             padding: 0.2rem 0.4rem;
             border-radius: 0.25rem;
             font-size: 0.875rem;
             color: #e53e3e;
+        }
+        .dark .prose code {
+            background-color: #2d3748;
+            color: #fc8181;
         }
         .prose pre code {
             background-color: transparent;
@@ -77,12 +107,21 @@
             margin-bottom: 0.5rem;
             color: #4a5568;
         }
+        .dark .prose li {
+            color: #cbd5e0;
+        }
         .prose a {
             color: #3182ce;
             text-decoration: underline;
         }
+        .dark .prose a {
+            color: #63b3ed;
+        }
         .prose a:hover {
             color: #2c5282;
+        }
+        .dark .prose a:hover {
+            color: #4299e1;
         }
         .prose blockquote {
             border-left: 4px solid #4299e1;
@@ -90,6 +129,10 @@
             margin: 1rem 0;
             font-style: italic;
             color: #4a5568;
+        }
+        .dark .prose blockquote {
+            border-left-color: #2b6cb0;
+            color: #cbd5e0;
         }
         .prose table {
             width: 100%;
@@ -101,9 +144,15 @@
             padding: 0.75rem;
             text-align: left;
         }
+        .dark .prose th, .dark .prose td {
+            border-color: #4a5568;
+        }
         .prose th {
             background-color: #edf2f7;
             font-weight: 600;
+        }
+        .dark .prose th {
+            background-color: #2d3748;
         }
         .admonition {
             padding: 1rem;
@@ -115,27 +164,45 @@
             background-color: #ebf8ff;
             border-color: #4299e1;
         }
+        .dark .admonition.note {
+            background-color: #2c5282;
+            border-color: #4299e1;
+        }
         .admonition.warning {
             background-color: #fffaf0;
+            border-color: #ed8936;
+        }
+        .dark .admonition.warning {
+            background-color: #7c2d12;
             border-color: #ed8936;
         }
         .admonition.tip {
             background-color: #f0fff4;
             border-color: #48bb78;
         }
+        .dark .admonition.tip {
+            background-color: #22543d;
+            border-color: #48bb78;
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
 
     <!-- Header -->
-    <header class="gradient-bg text-white shadow-lg">
+    <header class="gradient-bg text-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex items-center justify-between">
                 <a href="/{{ lang }}/" class="flex items-center space-x-3 hover:opacity-80 transition">
                     <i class="fas fa-home text-2xl"></i>
                     <span class="text-xl font-semibold">{{ t('page.home') }}</span>
                 </a>
-                <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-3">
+                    <!-- Dark Mode Toggle -->
+                    <button id="dark-mode-toggle" class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition" aria-label="Toggle dark mode">
+                        <i id="moon-icon" class="fas fa-moon text-xl"></i>
+                        <i id="sun-icon" class="fas fa-sun text-xl hidden"></i>
+                    </button>
+
                     <!-- Language Selector (using native language names) -->
                     <nav aria-label="Language selection" class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
                         <a href="/set-language/en"
@@ -170,36 +237,36 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-            <h1 class="text-4xl font-bold text-gray-900 mb-3">{{ title }}</h1>
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-3">{{ title }}</h1>
             {% if description %}
-            <p class="text-xl text-gray-600">{{ description }}</p>
+            <p class="text-xl text-gray-600 dark:text-gray-400">{{ description }}</p>
             {% endif %}
         </div>
 
         <!-- Breadcrumb -->
         <nav class="mb-8" aria-label="Breadcrumb">
-            <ol class="flex items-center space-x-2 text-sm text-gray-600">
-                <li><a href="/{{ lang }}/" class="hover:text-blue-600">{{ t('page.home') }}</a></li>
+            <ol class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><a href="/{{ lang }}/" class="hover:text-blue-600 dark:hover:text-blue-400 transition">{{ t('page.home') }}</a></li>
                 <li><i class="fas fa-chevron-right text-xs" aria-hidden="true"></i></li>
-                <li class="text-gray-900" aria-current="page">{{ title }}</li>
+                <li class="text-gray-900 dark:text-gray-100" aria-current="page">{{ title }}</li>
             </ol>
         </nav>
 
         <!-- Content -->
-        <article class="bg-white rounded-lg shadow-lg p-8">
+        <article class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transition-colors duration-200">
             <div class="prose">
                 {{ content | safe }}
             </div>
         </article>
 
         <!-- Navigation -->
-        <div class="mt-12 bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+        <div class="mt-12 bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors duration-200">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 <i class="fas fa-book mr-2"></i>{{ t('page.other_pages') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {% for page in all_pages[:6] %}
-                <a href="/{{ lang }}/page/{{ page.slug }}" class="text-blue-600 hover:text-blue-800 hover:underline">
+                <a href="/{{ lang }}/page/{{ page.slug }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition">
                     <i class="fas fa-file-alt mr-2"></i>{{ page.title }}
                 </a>
                 {% endfor %}
@@ -209,9 +276,9 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white mt-20">
+    <footer class="bg-gray-900 dark:bg-gray-950 text-white mt-20 transition-colors duration-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center text-gray-400">
+            <div class="text-center text-gray-400 dark:text-gray-500">
                 <p>&copy; {{ t('footer.copyright') }}</p>
                 <p class="mt-2">
                     <a href="/{{ lang }}/" class="hover:text-white transition">{{ t('page.home') }}</a> |

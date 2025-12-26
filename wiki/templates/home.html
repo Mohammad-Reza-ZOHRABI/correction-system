@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}">
+<html lang="{{ lang }}" class="transition-colors duration-200">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +12,13 @@
     <link rel="canonical" href="{{ current_url }}">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Enable dark mode support in Tailwind
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script src="/static/js/darkmode.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @keyframes fadeIn {
@@ -24,6 +31,9 @@
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #4c51bf 0%, #5b21b6 100%);
+        }
         .card-hover {
             transition: all 0.3s ease;
         }
@@ -31,16 +41,26 @@
             transform: translateY(-5px);
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
+        .dark .card-hover:hover {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
 
     <!-- Header -->
-    <header class="gradient-bg text-white shadow-lg">
+    <header class="gradient-bg text-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="text-center animate-fade-in">
-                <!-- Language Selector (using native language names) -->
-                <div class="absolute top-4 right-4">
+                <!-- Top Right Controls -->
+                <div class="absolute top-4 right-4 flex items-center space-x-3">
+                    <!-- Dark Mode Toggle -->
+                    <button id="dark-mode-toggle" class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition" aria-label="Toggle dark mode">
+                        <i id="moon-icon" class="fas fa-moon text-xl"></i>
+                        <i id="sun-icon" class="fas fa-sun text-xl hidden"></i>
+                    </button>
+
+                    <!-- Language Selector -->
                     <nav aria-label="Language selection" class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
                         <a href="/set-language/en"
                            lang="en"
@@ -74,9 +94,9 @@
                             type="text"
                             name="q"
                             placeholder="{{ t('home.search_placeholder') }}"
-                            class="w-full px-6 py-4 rounded-full text-gray-900 text-lg focus:outline-none focus:ring-4 focus:ring-blue-300"
+                            class="w-full px-6 py-4 rounded-full text-gray-900 dark:text-gray-100 dark:bg-gray-800 text-lg focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-600"
                         >
-                        <button type="submit" class="absolute right-2 top-2 bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition">
+                        <button type="submit" class="absolute right-2 top-2 bg-blue-600 dark:bg-blue-700 text-white px-6 py-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-800 transition">
                             <i class="fas fa-search"></i>
                         </button>
                     </form>
@@ -88,28 +108,28 @@
     <!-- Quick Links -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 mb-12">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <a href="https://git.zohrabi.cloud" target="_blank" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
+            <a href="https://git.zohrabi.cloud" target="_blank" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">📦</div>
-                <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.gitea.title') }}</h3>
-                <p class="text-sm text-gray-600">{{ t('home.quick_links.gitea.desc') }}</p>
+                <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ t('home.quick_links.gitea.title') }}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('home.quick_links.gitea.desc') }}</p>
             </a>
 
-            <a href="https://grades.zohrabi.cloud" target="_blank" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
+            <a href="https://grades.zohrabi.cloud" target="_blank" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">📊</div>
-                <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.grades.title') }}</h3>
-                <p class="text-sm text-gray-600">{{ t('home.quick_links.grades.desc') }}</p>
+                <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ t('home.quick_links.grades.title') }}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('home.quick_links.grades.desc') }}</p>
             </a>
 
-            <a href="/{{ lang }}/page/getting-started" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
+            <a href="/{{ lang }}/page/getting-started" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">🚀</div>
-                <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.getting_started.title') }}</h3>
-                <p class="text-sm text-gray-600">{{ t('home.quick_links.getting_started.desc') }}</p>
+                <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ t('home.quick_links.getting_started.title') }}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('home.quick_links.getting_started.desc') }}</p>
             </a>
 
-            <a href="/{{ lang }}/page/faq" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
+            <a href="/{{ lang }}/page/faq" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">❓</div>
-                <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.faq.title') }}</h3>
-                <p class="text-sm text-gray-600">{{ t('home.quick_links.faq.desc') }}</p>
+                <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ t('home.quick_links.faq.title') }}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('home.quick_links.faq.desc') }}</p>
             </a>
         </div>
     </div>
@@ -120,21 +140,21 @@
         <!-- Categories -->
         {% for category, pages in categories.items() %}
         <div class="mb-12 animate-fade-in">
-            <h2 class="text-3xl font-bold text-gray-900 mb-6 flex items-center">
-                <span class="w-2 h-8 bg-blue-600 mr-4 rounded"></span>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+                <span class="w-2 h-8 bg-blue-600 dark:bg-blue-500 mr-4 rounded"></span>
                 {{ category }}
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for page in pages %}
-                <a href="/{{ lang }}/page/{{ page.slug }}" class="bg-white rounded-lg shadow-md hover:shadow-xl transition p-6 card-hover">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                <a href="/{{ lang }}/page/{{ page.slug }}" class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition p-6 card-hover">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                         {{ page.title }}
                     </h3>
                     {% if page.description %}
-                    <p class="text-gray-600">{{ page.description }}</p>
+                    <p class="text-gray-600 dark:text-gray-400">{{ page.description }}</p>
                     {% endif %}
-                    <div class="mt-4 text-blue-600 font-medium">
+                    <div class="mt-4 text-blue-600 dark:text-blue-400 font-medium">
                         {{ t('common.read_more') }} <i class="fas fa-arrow-right ml-1"></i>
                     </div>
                 </a>
@@ -144,17 +164,17 @@
         {% endfor %}
 
         <!-- Info Box -->
-        <div class="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg mt-12">
+        <div class="bg-blue-50 dark:bg-blue-900 dark:bg-opacity-30 border-l-4 border-blue-600 dark:border-blue-400 p-6 rounded-lg mt-12">
             <div class="flex items-start">
                 <div class="flex-shrink-0">
-                    <i class="fas fa-info-circle text-blue-600 text-2xl"></i>
+                    <i class="fas fa-info-circle text-blue-600 dark:text-blue-400 text-2xl"></i>
                 </div>
                 <div class="ml-4">
-                    <h3 class="text-lg font-semibold text-blue-900 mb-2">
+                    <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-200 mb-2">
                         {{ t('common.need_help') }}
                     </h3>
-                    <p class="text-blue-800">
-                        {{ t('common.for_questions') }} <a href="mailto:Reza@zohrabi.fr" class="underline font-semibold">Reza@zohrabi.fr</a>
+                    <p class="text-blue-800 dark:text-blue-300">
+                        {{ t('common.for_questions') }} <a href="mailto:Reza@zohrabi.fr" class="underline font-semibold hover:text-blue-600 dark:hover:text-blue-200">Reza@zohrabi.fr</a>
                     </p>
                 </div>
             </div>
@@ -163,39 +183,39 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white mt-20">
+    <footer class="bg-gray-900 dark:bg-gray-950 text-white mt-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
                     <h4 class="text-lg font-bold mb-4">{{ t('footer.title') }}</h4>
-                    <p class="text-gray-400">
+                    <p class="text-gray-400 dark:text-gray-500">
                         {{ t('footer.description') }}
                     </p>
                 </div>
                 <div>
                     <h4 class="text-lg font-bold mb-4">{{ t('footer.quick_links') }}</h4>
-                    <ul class="space-y-2 text-gray-400">
+                    <ul class="space-y-2 text-gray-400 dark:text-gray-500">
                         <li><a href="https://git.zohrabi.cloud" class="hover:text-white transition">Gitea</a></li>
                         <li><a href="https://grades.zohrabi.cloud" class="hover:text-white transition">{{ t('home.quick_links.grades.title') }}</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="text-lg font-bold mb-4">{{ t('footer.support') }}</h4>
-                    <p class="text-gray-400">
+                    <p class="text-gray-400 dark:text-gray-500">
                         <i class="fas fa-envelope mr-2"></i> Reza@zohrabi.fr
                     </p>
                 </div>
                 <div>
                     <h4 class="text-lg font-bold mb-4">{{ t('footer.about') }}</h4>
-                    <p class="text-gray-400 mb-2">
+                    <p class="text-gray-400 dark:text-gray-500 mb-2">
                         <i class="fas fa-user-circle mr-2"></i> {{ t('footer.instructor') }}: Reza Zohrabi
                     </p>
-                    <p class="text-gray-400">
+                    <p class="text-gray-400 dark:text-gray-500">
                         <i class="fab fa-linkedin mr-2"></i> <a href="https://www.linkedin.com/in/reza-zohrabi/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition">{{ t('footer.linkedin_profile') }}</a>
                     </p>
                 </div>
             </div>
-            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <div class="border-t border-gray-800 dark:border-gray-900 mt-8 pt-8 text-center text-gray-400 dark:text-gray-500">
                 <p>&copy; {{ t('footer.copyright') }}</p>
             </div>
         </div>

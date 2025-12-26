@@ -1,33 +1,74 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang }}" class="transition-colors duration-200">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} - Technologies de Containérisation</title>
+    <title>{{ title }} - {{ t('home.title') }}</title>
+
+    <!-- SEO: Hreflang links for multilingual support -->
+    {% for link in hreflang_links %}
+    <link rel="alternate" hreflang="{{ link.lang }}" href="{{ link.url }}">
+    {% endfor %}
+    <link rel="canonical" href="{{ current_url }}">
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Enable dark mode support in Tailwind
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script src="/static/js/darkmode.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #4c51bf 0%, #5b21b6 100%);
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
 
     <!-- Header -->
-    <header class="gradient-bg text-white shadow-lg">
+    <header class="gradient-bg text-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex items-center justify-between">
-                <a href="/" class="flex items-center space-x-3 hover:opacity-80 transition">
+                <a href="/{{ lang }}/" class="flex items-center space-x-3 hover:opacity-80 transition">
                     <i class="fas fa-home text-2xl"></i>
-                    <span class="text-xl font-semibold">Accueil</span>
+                    <span class="text-xl font-semibold">{{ t('page.home') }}</span>
                 </a>
-                <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-3">
+                    <!-- Dark Mode Toggle -->
+                    <button id="dark-mode-toggle" class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition" aria-label="Toggle dark mode">
+                        <i id="moon-icon" class="fas fa-moon text-xl"></i>
+                        <i id="sun-icon" class="fas fa-sun text-xl hidden"></i>
+                    </button>
+
+                    <!-- Language Selector -->
+                    <nav aria-label="Language selection" class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
+                        <a href="/set-language/en"
+                           lang="en"
+                           hreflang="en"
+                           aria-current="{% if lang == 'en' %}page{% else %}false{% endif %}"
+                           class="{% if lang == 'en' %}font-bold{% endif %} hover:text-yellow-200 transition">
+                            English
+                        </a>
+                        <span aria-hidden="true">|</span>
+                        <a href="/set-language/fr"
+                           lang="fr"
+                           hreflang="fr"
+                           aria-current="{% if lang == 'fr' %}page{% else %}false{% endif %}"
+                           class="{% if lang == 'fr' %}font-bold{% endif %} hover:text-yellow-200 transition">
+                            Français
+                        </a>
+                    </nav>
                     <a href="https://git.zohrabi.cloud" target="_blank" class="hover:opacity-80 transition">
-                        <i class="fas fa-code-branch mr-2"></i>Gitea
+                        <i class="fas fa-code-branch mr-2"></i>{{ t('home.quick_links.gitea.title') }}
                     </a>
                     <a href="https://grades.zohrabi.cloud" target="_blank" class="hover:opacity-80 transition">
-                        <i class="fas fa-chart-bar mr-2"></i>Notes
+                        <i class="fas fa-chart-bar mr-2"></i>{{ t('home.quick_links.grades.title') }}
                     </a>
                 </div>
             </div>
@@ -39,18 +80,18 @@
 
         <!-- Search Box -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-6">Recherche</h1>
-            <form action="/search" method="get">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">{{ t('search.title') }}</h1>
+            <form action="/{{ lang }}/search" method="get">
                 <div class="relative">
                     <input
                         type="text"
                         name="q"
                         value="{{ query }}"
-                        placeholder="Rechercher dans la documentation..."
-                        class="w-full px-6 py-4 rounded-lg border-2 border-gray-300 text-gray-900 text-lg focus:outline-none focus:border-blue-500"
+                        placeholder="{{ t('home.search_placeholder') }}"
+                        class="w-full px-6 py-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 dark:bg-gray-800 text-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
                         autofocus
                     >
-                    <button type="submit" class="absolute right-2 top-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                    <button type="submit" class="absolute right-2 top-2 bg-blue-600 dark:bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
@@ -60,44 +101,44 @@
         <!-- Results -->
         {% if query %}
             <div class="mb-6">
-                <p class="text-gray-600">
-                    <span class="font-semibold">{{ results|length }}</span> résultat(s) pour
-                    <span class="font-semibold text-blue-600">"{{ query }}"</span>
+                <p class="text-gray-600 dark:text-gray-400">
+                    <span class="font-semibold">{{ results|length }}</span> {{ t('search.results_for') }}
+                    <span class="font-semibold text-blue-600 dark:text-blue-400">"{{ query }}"</span>
                 </p>
             </div>
 
             {% if results %}
                 <div class="space-y-6">
                     {% for result in results %}
-                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
-                        <a href="/page/{{ result.slug }}" class="block">
-                            <h2 class="text-2xl font-semibold text-blue-600 hover:text-blue-800 mb-2">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-200">
+                        <a href="/{{ lang }}/page/{{ result.slug }}" class="block">
+                            <h2 class="text-2xl font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-2 transition">
                                 {{ result.title }}
                             </h2>
                             {% if result.description %}
-                            <p class="text-gray-700 mb-2">{{ result.description }}</p>
+                            <p class="text-gray-700 dark:text-gray-300 mb-2">{{ result.description }}</p>
                             {% endif %}
-                            <p class="text-gray-500 text-sm">{{ result.snippet }}</p>
-                            <div class="mt-3 text-blue-600 font-medium">
-                                Lire la suite <i class="fas fa-arrow-right ml-1"></i>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">{{ result.snippet }}</p>
+                            <div class="mt-3 text-blue-600 dark:text-blue-400 font-medium">
+                                {{ t('common.read_more') }} <i class="fas fa-arrow-right ml-1"></i>
                             </div>
                         </a>
                     </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg">
+                <div class="bg-yellow-50 dark:bg-yellow-900 dark:bg-opacity-30 border-l-4 border-yellow-400 dark:border-yellow-600 p-6 rounded-lg transition-colors duration-200">
                     <div class="flex items-start">
                         <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                            <i class="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-2xl"></i>
                         </div>
                         <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-yellow-900 mb-2">
-                                Aucun résultat trouvé
+                            <h3 class="text-lg font-semibold text-yellow-900 dark:text-yellow-200 mb-2">
+                                {{ t('search.no_results') }}
                             </h3>
-                            <p class="text-yellow-800">
-                                Essayez avec d'autres mots-clés ou consultez l'<a href="/" class="underline font-semibold">accueil</a>
-                                pour parcourir toutes les pages disponibles.
+                            <p class="text-yellow-800 dark:text-yellow-300">
+                                {{ t('search.try_different') }} <a href="/{{ lang }}/" class="underline font-semibold hover:text-yellow-600 dark:hover:text-yellow-100 transition">{{ t('page.home') }}</a>
+                                {{ t('search.browse_all') }}
                             </p>
                         </div>
                     </div>
@@ -108,14 +149,14 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white mt-20">
+    <footer class="bg-gray-900 dark:bg-gray-950 text-white mt-20 transition-colors duration-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center text-gray-400">
-                <p>&copy; 2024 Professeur Zohrabi - Technologies de Containérisation</p>
+            <div class="text-center text-gray-400 dark:text-gray-500">
+                <p>&copy; {{ t('footer.copyright') }}</p>
                 <p class="mt-2">
-                    <a href="/" class="hover:text-white transition">Accueil</a> |
-                    <a href="/page/faq" class="hover:text-white transition">FAQ</a> |
-                    <a href="mailto:Reza@zohrabi.fr" class="hover:text-white transition">Contact</a>
+                    <a href="/{{ lang }}/" class="hover:text-white transition">{{ t('page.home') }}</a> |
+                    <a href="/{{ lang }}/page/faq" class="hover:text-white transition">{{ t('common.faq') }}</a> |
+                    <a href="mailto:Reza@zohrabi.fr" class="hover:text-white transition">{{ t('page.contact') }}</a>
                 </p>
             </div>
         </div>
