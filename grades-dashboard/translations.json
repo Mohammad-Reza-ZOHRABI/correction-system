@@ -62,6 +62,26 @@
         "submissions": "Submissions",
         "average": "Global Average"
       },
+      "student": {
+        "my_grades": "My Grades",
+        "total_tds": "Total Assignments",
+        "tds_completed": "Completed",
+        "td_code": "Code",
+        "td_name": "Assignment",
+        "grade": "Grade",
+        "tests_passed": "Tests",
+        "attempts": "Attempts",
+        "remaining_attempts": "Remaining",
+        "last_submission": "Last Submission",
+        "no_submission": "Not submitted",
+        "help_title": "Help & Information",
+        "help_text": "Important information about your grades:",
+        "help_attempts": "You have 5 attempts maximum per assignment",
+        "help_best_grade": "Only your best grade is kept",
+        "help_documentation": "Check the documentation at",
+        "course_title": "Containerization Technologies",
+        "documentation": "Documentation"
+      },
       "filters": {
         "group": "Group",
         "all_groups": "-- All groups --",
@@ -181,6 +201,26 @@
         "assignments": "TDs",
         "submissions": "Soumissions",
         "average": "Moyenne globale"
+      },
+      "student": {
+        "my_grades": "Mes Notes",
+        "total_tds": "Total TDs",
+        "tds_completed": "Complétés",
+        "td_code": "Code",
+        "td_name": "TD",
+        "grade": "Note",
+        "tests_passed": "Tests",
+        "attempts": "Tentatives",
+        "remaining_attempts": "Restantes",
+        "last_submission": "Dernière soumission",
+        "no_submission": "Non soumis",
+        "help_title": "Aide & Informations",
+        "help_text": "Informations importantes sur vos notes :",
+        "help_attempts": "Vous avez 5 tentatives maximum par TD",
+        "help_best_grade": "Seule votre meilleure note est conservée",
+        "help_documentation": "Consultez la documentation sur",
+        "course_title": "Technologies de Containérisation",
+        "documentation": "Documentation"
       },
       "filters": {
         "group": "Groupe",

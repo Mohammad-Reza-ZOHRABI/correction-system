@@ -192,45 +192,101 @@ async def dashboard(
     db: Session = Depends(get_db)
 ):
     """Page principale du dashboard"""
-    
+
     # Valider la langue
     if lang not in ["en", "fr"]:
         lang = DEFAULT_LANGUAGE
-    
-    # Récupérer les statistiques globales avec tentatives
-    stats_query = text("""
-        SELECT 
-            COUNT(DISTINCT s.id) as total_etudiants,
-            COUNT(DISTINCT a.id) as total_tds,
-            COUNT(sub.id) as total_soumissions,
-            COALESCE(AVG(g.note), 0) as note_moyenne_globale,
-            COALESCE(AVG(am.nb_tentatives), 0) as avg_attempts
-        FROM students s
-        CROSS JOIN assignments a
-        LEFT JOIN submissions sub ON s.id = sub.student_id
-        LEFT JOIN grades g ON sub.id = g.submission_id
-        LEFT JOIN activity_metrics am ON s.id = am.student_id AND a.id = am.assignment_id
-    """)
-    
-    stats = db.execute(stats_query).fetchone()
-    
-    # Récupérer les groupes
-    groupes_query = text("SELECT DISTINCT groupe FROM students ORDER BY groupe")
-    groupes = [row[0] for row in db.execute(groupes_query).fetchall()]
-    
-    # Récupérer les TDs
-    tds_query = text("SELECT id, code, nom FROM assignments ORDER BY code")
-    tds = db.execute(tds_query).fetchall()
-    
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
-        "user": user,
-        "stats": stats,
-        "groupes": groupes,
-        "tds": tds,
-        "lang": lang,
-        "t": lambda key: get_translation(lang, key)
-    })
+
+    # Si c'est un enseignant, afficher la vue complète
+    if user.get("is_teacher", False):
+        # Récupérer les statistiques globales
+        stats_query = text("""
+            SELECT
+                COUNT(DISTINCT s.id) as total_etudiants,
+                COUNT(DISTINCT a.id) as total_tds,
+                COUNT(sub.id) as total_soumissions,
+                COALESCE(AVG(g.note), 0) as note_moyenne_globale,
+                COALESCE(AVG(am.nb_tentatives), 0) as avg_attempts
+            FROM students s
+            CROSS JOIN assignments a
+            LEFT JOIN submissions sub ON s.id = sub.student_id
+            LEFT JOIN grades g ON sub.id = g.submission_id
+            LEFT JOIN activity_metrics am ON s.id = am.student_id AND a.id = am.assignment_id
+        """)
+
+        stats = db.execute(stats_query).fetchone()
+
+        # Récupérer les groupes
+        groupes_query = text("SELECT DISTINCT groupe FROM students ORDER BY groupe")
+        groupes = [row[0] for row in db.execute(groupes_query).fetchall()]
+
+        # Récupérer les TDs
+        tds_query = text("SELECT id, code, nom FROM assignments ORDER BY code")
+        tds = db.execute(tds_query).fetchall()
+
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request,
+            "user": user,
+            "stats": stats,
+            "groupes": groupes,
+            "tds": tds,
+            "lang": lang,
+            "t": lambda key: get_translation(lang, key)
+        })
+
+    # Si c'est un étudiant, afficher uniquement ses notes
+    else:
+        # Trouver l'étudiant par email
+        student_query = text("SELECT id, prenom, nom, email, groupe FROM students WHERE email = :email")
+        student = db.execute(student_query, {"email": user["email"]}).fetchone()
+
+        if not student:
+            raise HTTPException(
+                status_code=404,
+                detail="Étudiant non trouvé dans la base de données"
+            )
+
+        student_id = student[0]
+
+        # Récupérer les notes de l'étudiant
+        grades_query = text("""
+            SELECT
+                a.code as td_code,
+                a.nom as td_nom,
+                MAX(g.note) as meilleure_note,
+                COUNT(sub.id) as nb_tentatives,
+                5 - COUNT(sub.id) as tentatives_restantes,
+                MAX(sub.submitted_at) as derniere_soumission,
+                MAX(g.tests_passed) as tests_passed,
+                MAX(g.tests_total) as tests_total
+            FROM assignments a
+            LEFT JOIN submissions sub ON a.id = sub.assignment_id AND sub.student_id = :student_id
+            LEFT JOIN grades g ON sub.id = g.submission_id
+            GROUP BY a.id, a.code, a.nom
+            ORDER BY a.code
+        """)
+
+        grades = db.execute(grades_query, {"student_id": student_id}).fetchall()
+
+        # Calculer la moyenne
+        notes = [float(g[2]) for g in grades if g[2] is not None]
+        moyenne = sum(notes) / len(notes) if notes else 0
+
+        return templates.TemplateResponse("student_dashboard.html", {
+            "request": request,
+            "user": user,
+            "student": {
+                "id": student[0],
+                "prenom": student[1],
+                "nom": student[2],
+                "email": student[3],
+                "groupe": student[4]
+            },
+            "grades": grades,
+            "moyenne": moyenne,
+            "lang": lang,
+            "t": lambda key: get_translation(lang, key)
+        })
 
 @app.get("/api/group/{groupe}", response_class=JSONResponse)
 async def get_group_data(
