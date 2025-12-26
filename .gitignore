@@ -1,0 +1,29 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs et sauvegardes
+*.log
+*.sql.gz
+*.tar.gz
+backups/
+
+# Secrets et configuration sensible
+.env
+.env.local
+.env.*.local
+.env.backup
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+
+# Données persistantes
+postgres/data/
+gitea/data/
+gitea-runner/data/
+mailpit/data/
+grades-dashboard/logs/
+traefik/acme/acme.json

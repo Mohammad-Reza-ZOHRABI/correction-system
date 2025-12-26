@@ -1,0 +1,50 @@
+api:
+  dashboard: true
+  insecure: false
+
+log:
+  level: INFO
+  format: common
+
+accessLog:
+  format: common
+  filePath: /var/log/traefik/access.log
+
+entryPoints:
+  http:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: https
+          scheme: https
+          permanent: true
+
+  https:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: proxy
+    httpClientTimeout: 0
+  file:
+    directory: /config
+    watch: true
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@zohrabi.cloud
+      storage: /acme/acme.json
+      httpChallenge:
+        entryPoint: http
+
+# Sécurité globale
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false

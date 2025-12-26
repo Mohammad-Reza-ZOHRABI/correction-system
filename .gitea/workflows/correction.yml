@@ -1,0 +1,493 @@
+# Workflow de correction automatique
+# À placer dans chaque repository étudiant: .gitea/workflows/correction.yml
+
+name: Correction Automatique TD
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  correction:
+    runs-on: ubuntu-latest
+    
+    # Timeout global: 15 minutes max
+    timeout-minutes: 15
+    
+    steps:
+      - name: 🔍 Check Attempts Limit
+        id: check_attempts
+        env:
+          POSTGRES_HOST: postgres
+          POSTGRES_DB: grades
+          POSTGRES_USER: gitea
+          POSTGRES_PASSWORD: gitea_secure_password_2024
+        run: |
+          echo "=== Checking attempts limit ==="
+          
+          # Install PostgreSQL client
+          apt-get update && apt-get install -y postgresql-client
+          
+          STUDENT_USERNAME="${{ github.actor }}"
+          ASSIGNMENT_CODE="TD1"  # À adapter selon le TD
+          
+          # Check remaining attempts
+          REMAINING=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -t -c "
+            SELECT get_remaining_attempts(
+              (SELECT id FROM students WHERE gitea_username = '$STUDENT_USERNAME'),
+              (SELECT id FROM assignments WHERE code = '$ASSIGNMENT_CODE')
+            );
+          " | xargs)
+          
+          echo "attempts_remaining=$REMAINING" >> $GITHUB_OUTPUT
+          
+          if [ "$REMAINING" -le 0 ]; then
+            echo "❌ Maximum attempts reached (5/5)"
+            echo "max_attempts_reached=true" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ Attempts remaining: $REMAINING/5"
+            echo "max_attempts_reached=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: 📥 Checkout du code étudiant
+        if: steps.check_attempts.outputs.max_attempts_reached == 'false'
+        uses: actions/checkout@v4
+      
+      - name: 🔍 Vérification des fichiers requis
+        if: steps.check_attempts.outputs.max_attempts_reached == 'false'
+        id: check_files
+        run: |
+          echo "=== Vérification des fichiers ==="
+          SCORE=0
+          MAX_SCORE=100
+          RAPPORT=""
+          
+          # Vérifier Dockerfile
+          if [ -f "Dockerfile" ]; then
+            echo "✅ Dockerfile présent"
+            RAPPORT="$RAPPORT<li>✅ Dockerfile présent (+10 points)</li>"
+            SCORE=$((SCORE + 10))
+          else
+            echo "❌ Dockerfile manquant"
+            RAPPORT="$RAPPORT<li>❌ Dockerfile manquant (0 points)</li>"
+          fi
+          
+          # Vérifier docker-compose.yml
+          if [ -f "docker-compose.yml" ] || [ -f "compose.yml" ]; then
+            echo "✅ docker-compose.yml présent"
+            RAPPORT="$RAPPORT<li>✅ docker-compose.yml présent (+10 points)</li>"
+            SCORE=$((SCORE + 10))
+          else
+            echo "❌ docker-compose.yml manquant"
+            RAPPORT="$RAPPORT<li>❌ docker-compose.yml manquant (0 points)</li>"
+          fi
+          
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "rapport=$RAPPORT" >> $GITHUB_OUTPUT
+      
+      - name: 🐳 Configuration Docker
+        run: |
+          echo "=== Configuration Docker ==="
+          docker --version
+          docker compose version
+      
+      - name: 🏗️ Build des images Docker
+        id: build
+        continue-on-error: true
+        run: |
+          echo "=== Build des images ==="
+          START_TIME=$(date +%s)
+          
+          if [ -f "docker-compose.yml" ] || [ -f "compose.yml" ]; then
+            docker compose build --no-cache 2>&1 | tee build.log
+            BUILD_STATUS=$?
+          elif [ -f "Dockerfile" ]; then
+            docker build -t test-image . 2>&1 | tee build.log
+            BUILD_STATUS=$?
+          else
+            echo "❌ Aucun fichier de build trouvé"
+            BUILD_STATUS=1
+          fi
+          
+          END_TIME=$(date +%s)
+          BUILD_TIME=$((END_TIME - START_TIME))
+          
+          echo "build_status=$BUILD_STATUS" >> $GITHUB_OUTPUT
+          echo "build_time=$BUILD_TIME" >> $GITHUB_OUTPUT
+      
+      - name: 🚀 Démarrage des conteneurs
+        id: start
+        if: steps.build.outputs.build_status == '0'
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          echo "=== Démarrage des conteneurs ==="
+          
+          if [ -f "docker-compose.yml" ] || [ -f "compose.yml" ]; then
+            docker compose up -d 2>&1 | tee start.log
+            START_STATUS=$?
+            
+            # Attendre que les conteneurs soient prêts (max 30s)
+            echo "⏳ Attente du démarrage des services..."
+            sleep 10
+            
+            # Vérifier l'état des conteneurs
+            docker compose ps
+          else
+            docker run -d --name test-container test-image
+            START_STATUS=$?
+            sleep 5
+            docker ps
+          fi
+          
+          echo "start_status=$START_STATUS" >> $GITHUB_OUTPUT
+      
+      - name: 🧪 Tests fonctionnels
+        id: tests
+        if: steps.start.outputs.start_status == '0'
+        continue-on-error: true
+        run: |
+          echo "=== Exécution des tests ==="
+          TESTS_PASSED=0
+          TESTS_TOTAL=0
+          RAPPORT=""
+          
+          # Test 1: Vérifier que les conteneurs tournent
+          TESTS_TOTAL=$((TESTS_TOTAL + 1))
+          if docker compose ps | grep -q "Up"; then
+            echo "✅ Test 1: Conteneurs actifs"
+            RAPPORT="$RAPPORT<li>✅ Conteneurs démarrés correctement (+20 points)</li>"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          else
+            echo "❌ Test 1: Conteneurs non actifs"
+            RAPPORT="$RAPPORT<li>❌ Conteneurs non démarrés (0 points)</li>"
+          fi
+          
+          # Test 2: Vérifier les logs (pas d'erreur critique)
+          TESTS_TOTAL=$((TESTS_TOTAL + 1))
+          if docker compose logs | grep -qi "error\|fatal\|exception"; then
+            echo "❌ Test 2: Erreurs dans les logs"
+            RAPPORT="$RAPPORT<li>❌ Erreurs détectées dans les logs (0 points)</li>"
+          else
+            echo "✅ Test 2: Pas d'erreur dans les logs"
+            RAPPORT="$RAPPORT<li>✅ Aucune erreur critique dans les logs (+20 points)</li>"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          fi
+          
+          # Test 3: Vérifier la connectivité réseau entre conteneurs
+          TESTS_TOTAL=$((TESTS_TOTAL + 1))
+          CONTAINER_COUNT=$(docker compose ps -q | wc -l)
+          if [ "$CONTAINER_COUNT" -gt 1 ]; then
+            echo "✅ Test 3: Architecture multi-conteneurs détectée"
+            RAPPORT="$RAPPORT<li>✅ Architecture multi-conteneurs (+20 points)</li>"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          else
+            echo "ℹ️  Test 3: Un seul conteneur"
+            RAPPORT="$RAPPORT<li>ℹ️  Un seul conteneur (+10 points)</li>"
+          fi
+          
+          # Test 4: Vérifier les volumes (persistance)
+          TESTS_TOTAL=$((TESTS_TOTAL + 1))
+          if docker compose config | grep -q "volumes:"; then
+            echo "✅ Test 4: Volumes configurés"
+            RAPPORT="$RAPPORT<li>✅ Volumes persistants configurés (+10 points)</li>"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          else
+            echo "ℹ️  Test 4: Pas de volumes"
+            RAPPORT="$RAPPORT<li>ℹ️  Pas de volumes persistants (0 points)</li>"
+          fi
+          
+          # Test 5: Vérifier les réseaux personnalisés
+          TESTS_TOTAL=$((TESTS_TOTAL + 1))
+          if docker compose config | grep -q "networks:"; then
+            echo "✅ Test 5: Réseaux personnalisés"
+            RAPPORT="$RAPPORT<li>✅ Réseaux personnalisés (+10 points)</li>"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+          else
+            echo "ℹ️  Test 5: Réseau par défaut"
+            RAPPORT="$RAPPORT<li>ℹ️  Réseau par défaut (0 points)</li>"
+          fi
+          
+          echo "tests_passed=$TESTS_PASSED" >> $GITHUB_OUTPUT
+          echo "tests_total=$TESTS_TOTAL" >> $GITHUB_OUTPUT
+          echo "rapport=$RAPPORT" >> $GITHUB_OUTPUT
+      
+      - name: 📊 Calcul de la note finale
+        id: grade
+        if: always()
+        run: |
+          echo "=== Calcul de la note finale ==="
+          
+          SCORE=0
+          MAX_SCORE=100
+          
+          # Points pour les fichiers
+          if [ -f "Dockerfile" ]; then
+            SCORE=$((SCORE + 10))
+          fi
+          if [ -f "docker-compose.yml" ] || [ -f "compose.yml" ]; then
+            SCORE=$((SCORE + 10))
+          fi
+          
+          # Points pour le build
+          if [ "${{ steps.build.outputs.build_status }}" == "0" ]; then
+            SCORE=$((SCORE + 20))
+          fi
+          
+          # Points pour le démarrage
+          if [ "${{ steps.start.outputs.start_status }}" == "0" ]; then
+            SCORE=$((SCORE + 20))
+          fi
+          
+          # Points pour les tests
+          TESTS_PASSED=${{ steps.tests.outputs.tests_passed || 0 }}
+          SCORE=$((SCORE + TESTS_PASSED * 8))
+          
+          # Limiter à 100
+          if [ $SCORE -gt 100 ]; then
+            SCORE=100
+          fi
+          
+          echo "note=$SCORE" >> $GITHUB_OUTPUT
+          echo "📊 Note finale: $SCORE/100"
+      
+      - name: 📧 Génération du rapport HTML
+        id: rapport
+        if: always()
+        run: |
+          echo "=== Génération du rapport ==="
+          
+          ATTEMPTS_REMAINING="${{ steps.check_attempts.outputs.attempts_remaining || 0 }}"
+          ATTEMPTS_USED=$((5 - ATTEMPTS_REMAINING))
+          MAX_ATTEMPTS_REACHED="${{ steps.check_attempts.outputs.max_attempts_reached || 'false' }}"
+          
+          # Choose language (default: English)
+          LANG="${{ github.event.repository.language || 'en' }}"
+          
+          if [ "$MAX_ATTEMPTS_REACHED" = "true" ]; then
+            # Rapport d'échec - limite atteinte
+            cat > rapport.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; }
+              .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 8px; }
+              .footer { text-align: center; color: #6b7280; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>🚫 Maximum Attempts Reached</h1>
+              <p>Automatic Correction System</p>
+            </div>
+            
+            <div class="warning">
+              <h2>⚠️ Limit Reached</h2>
+              <p>You have reached the maximum number of attempts (5/5) for this assignment.</p>
+              <p><strong>No more submissions are allowed for this assignment.</strong></p>
+              <p>Your best grade will be kept for evaluation.</p>
+            </div>
+            
+            <div class="footer">
+              <p>Containerization Technologies - Instructor M.R. Zohrabi</p>
+              <p>Contact: mohammad-reza.zohrabi@ext.devinci.fr</p>
+            </div>
+          </body>
+          </html>
+          EOF
+          else
+            # Rapport normal avec compteur de tentatives
+            cat > rapport.html << EOF
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; }
+              .note { font-size: 48px; font-weight: bold; margin: 20px 0; }
+              .success { color: #10b981; }
+              .warning { color: #f59e0b; }
+              .error { color: #ef4444; }
+              .section { background: #f9fafb; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #667eea; }
+              .attempts { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 8px; }
+              .attempts.warning { background: #fef3c7; border-left-color: #f59e0b; }
+              ul { list-style: none; padding: 0; }
+              li { padding: 8px 0; }
+              .footer { text-align: center; color: #6b7280; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>📋 Automatic Correction Report</h1>
+              <p>Containerization Technologies</p>
+            </div>
+            
+            <div class="attempts \${{ ATTEMPTS_USED >= 4 && 'warning' || '' }}">
+              <h3>📊 Attempts Used</h3>
+              <p style="font-size: 24px; font-weight: bold;">
+                Attempt \${ATTEMPTS_USED}/5
+              </p>
+              <p>Remaining attempts: <strong>\${ATTEMPTS_REMAINING}</strong></p>
+              \${{ ATTEMPTS_USED >= 4 && '<p style="color: #f59e0b;">⚠️ Warning: You are running out of attempts!</p>' || '' }}
+            </div>
+            
+            <div class="section">
+              <h2>📊 Final Grade</h2>
+              <div class="note \${{ steps.grade.outputs.note >= 70 && 'success' || steps.grade.outputs.note >= 50 && 'warning' || 'error' }}">
+                \${{ steps.grade.outputs.note }}/100
+              </div>
+            </div>
+            
+            <div class="section">
+              <h2>📁 Files</h2>
+              <ul>
+                \${{ steps.check_files.outputs.rapport }}
+              </ul>
+            </div>
+            
+            <div class="section">
+              <h2>🏗️ Build</h2>
+              <ul>
+                \${{ steps.build.outputs.build_status == '0' && '<li>✅ Build successful (+20 points)</li>' || '<li>❌ Build failed (0 points)</li>' }}
+                <li>⏱️ Build time: \${{ steps.build.outputs.build_time || 0 }}s</li>
+              </ul>
+            </div>
+            
+            <div class="section">
+              <h2>🚀 Startup</h2>
+              <ul>
+                \${{ steps.start.outputs.start_status == '0' && '<li>✅ Startup successful (+20 points)</li>' || '<li>❌ Startup failed (0 points)</li>' }}
+              </ul>
+            </div>
+            
+            <div class="section">
+              <h2>🧪 Functional Tests</h2>
+              <p>Tests passed: \${{ steps.tests.outputs.tests_passed || 0 }}/\${{ steps.tests.outputs.tests_total || 0 }}</p>
+              <ul>
+                \${{ steps.tests.outputs.rapport }}
+              </ul>
+            </div>
+            
+            <div class="section">
+              <h2>ℹ️ Information</h2>
+              <ul>
+                <li><strong>Commit:</strong> \${{ github.sha }}</li>
+                <li><strong>Branch:</strong> \${{ github.ref_name }}</li>
+                <li><strong>Date:</strong> \${{ github.event.head_commit.timestamp }}</li>
+                <li><strong>Repository:</strong> \${{ github.repository }}</li>
+              </ul>
+            </div>
+            
+            <div class="footer">
+              <p>Automatic correction generated on \$(date)</p>
+              <p>Containerization Technologies - Instructor M.R. Zohrabi</p>
+              <p>Contact: mohammad-reza.zohrabi@ext.devinci.fr</p>
+            </div>
+          </body>
+          </html>
+          EOF
+          fi
+          
+          # Save report
+          cat rapport.html
+      
+      - name: 💾 Enregistrement dans la base de données
+        if: always()
+        env:
+          POSTGRES_HOST: postgres
+          POSTGRES_DB: grades
+          POSTGRES_USER: gitea
+          POSTGRES_PASSWORD: gitea_secure_password_2024
+        run: |
+          echo "=== Enregistrement des résultats ==="
+          
+          # Installer psql
+          apt-get update && apt-get install -y postgresql-client
+          
+          # Récupérer les informations
+          STUDENT_EMAIL="${{ github.actor }}@students.zohrabi.cloud"
+          COMMIT_HASH="${{ github.sha }}"
+          NOTE="${{ steps.grade.outputs.note }}"
+          TESTS_PASSED="${{ steps.tests.outputs.tests_passed || 0 }}"
+          TESTS_TOTAL="${{ steps.tests.outputs.tests_total || 0 }}"
+          BUILD_TIME="${{ steps.build.outputs.build_time || 0 }}"
+          
+          # Lire le rapport HTML
+          RAPPORT_HTML=$(cat rapport.html | sed "s/'/''/g")
+          
+          # Construire la requête SQL
+          SQL=$(cat <<-EOSQL
+            -- Trouver l'étudiant
+            WITH student AS (
+              SELECT id FROM students WHERE gitea_username = '${{ github.actor }}' LIMIT 1
+            ),
+            assignment AS (
+              SELECT id FROM assignments WHERE code = 'TD1' LIMIT 1
+            ),
+            new_submission AS (
+              INSERT INTO submissions (student_id, assignment_id, commit_hash, status)
+              SELECT s.id, a.id, '$COMMIT_HASH', 'completed'
+              FROM student s, assignment a
+              ON CONFLICT (student_id, assignment_id, commit_hash) DO UPDATE
+                SET status = 'completed'
+              RETURNING id
+            )
+            INSERT INTO grades (submission_id, note, max_points, rapport_html, tests_passed, tests_total, duree_execution)
+            SELECT id, $NOTE, 100, '$RAPPORT_HTML', $TESTS_PASSED, $TESTS_TOTAL, $BUILD_TIME
+            FROM new_submission;
+          EOSQL
+          )
+          
+          # Exécuter la requête
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -c "$SQL"
+          
+          echo "✅ Résultats enregistrés"
+      
+      - name: 📧 Envoi de l'email
+        if: always()
+        run: |
+          echo "=== Envoi de l'email ==="
+          
+          STUDENT_EMAIL="${{ github.repository_owner }}@students.zohrabi.cloud"
+          NOTE="${{ steps.grade.outputs.note }}"
+          
+          # Installer sendmail/mailx
+          apt-get update && apt-get install -y mailutils
+          
+          # Configurer SMTP
+          cat > /etc/msmtprc << EOF
+          defaults
+          auth off
+          tls off
+          logfile /tmp/msmtp.log
+          
+          account mailpit
+          host mailpit
+          port 1025
+          from noreply@zohrabi.cloud
+          
+          account default : mailpit
+          EOF
+          
+          # Envoyer l'email
+          cat rapport.html | mail -s "🎓 Résultat de correction - Note: $NOTE/100" \
+            -a "Content-Type: text/html" \
+            -r "noreply@zohrabi.cloud" \
+            "$STUDENT_EMAIL"
+          
+          echo "✅ Email envoyé à $STUDENT_EMAIL"
+      
+      - name: 🧹 Nettoyage
+        if: always()
+        run: |
+          echo "=== Nettoyage ==="
+          docker compose down -v || true
+          docker system prune -f || true
+          echo "✅ Nettoyage terminé"

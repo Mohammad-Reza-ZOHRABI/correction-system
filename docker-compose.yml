@@ -1,0 +1,208 @@
+services:
+  # ============================================
+  # TRAEFIK - Reverse Proxy avec SSL
+  # ============================================
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - TZ=${TZ}
+      - DOCKER_API_VERSION=1.44
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/traefik.yml:ro
+      - ./traefik/config:/config:ro
+      - ./traefik/acme:/acme
+    networks:
+      - proxy
+
+  # ============================================
+  # POSTGRESQL - Base de données
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      - gitea-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # GITEA - Repository Git
+  # ============================================
+  gitea:
+    image: gitea/gitea:1.22
+    container_name: gitea
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=postgres:5432
+      - GITEA__database__NAME=${POSTGRES_DB}
+      - GITEA__database__USER=${POSTGRES_USER}
+      - GITEA__database__PASSWD=${POSTGRES_PASSWORD}
+      - GITEA__server__DOMAIN=${GITEA_DOMAIN}
+      - GITEA__server__SSH_DOMAIN=${GITEA_DOMAIN}
+      - GITEA__server__ROOT_URL=${GITEA_ROOT_URL}
+      - GITEA__service__DISABLE_REGISTRATION=true
+      - GITEA__service__REQUIRE_SIGNIN_VIEW=true
+      - GITEA__webhook__ALLOWED_HOST_LIST=*
+      - GITEA__actions__ENABLED=true
+      - GITEA__mailer__ENABLED=true
+      - GITEA__mailer__SMTP_ADDR=mailpit
+      - GITEA__mailer__SMTP_PORT=1025
+      - GITEA__mailer__FROM=${MAILER_FROM}
+    volumes:
+      - ./gitea/data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "2222:22"
+    networks:
+      - proxy
+      - gitea-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gitea.entrypoints=https"
+      - "traefik.http.routers.gitea.rule=Host(`${DOMAIN_GITEA}`)"
+      - "traefik.http.routers.gitea.tls=true"
+      - "traefik.http.routers.gitea.tls.certresolver=letsencrypt"
+      - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+
+  # ============================================
+  # GITEA ACTIONS RUNNER - CI/CD
+  # ============================================
+  gitea-runner:
+    image: gitea/act_runner:latest
+    container_name: gitea-runner
+    restart: unless-stopped
+    depends_on:
+      - gitea
+    environment:
+      - GITEA_INSTANCE_URL=http://gitea:3000
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN}
+      - GITEA_RUNNER_NAME=docker-runner-1
+      - GITEA_RUNNER_LABELS=ubuntu-latest:docker://node:16-bullseye,ubuntu-22.04:docker://node:16-bullseye
+    volumes:
+      - ./gitea-runner/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gitea-network
+      - runner-network
+    security_opt:
+      - apparmor=unconfined
+    # Limitations de ressources pour éviter la surcharge
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================
+  # MAILPIT - Serveur SMTP + Interface Web
+  # ============================================
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - MP_MAX_MESSAGES=5000
+      - MP_SMTP_AUTH_ACCEPT_ANY=true
+      - MP_SMTP_AUTH_ALLOW_INSECURE=true
+    volumes:
+      - ./mailpit/data:/data
+    networks:
+      - proxy
+      - gitea-network
+      - grades-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailpit.entrypoints=https"
+      - "traefik.http.routers.mailpit.rule=Host(`${DOMAIN_MAIL}`)"
+      - "traefik.http.routers.mailpit.tls=true"
+      - "traefik.http.routers.mailpit.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+
+  # ============================================
+  # GRADES DASHBOARD - Suivi des notes
+  # ============================================
+  grades-dashboard:
+    build: ./grades-dashboard
+    container_name: grades-dashboard
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/grades
+      - GITEA_URL=http://gitea:3000
+      - GITEA_OAUTH_CLIENT_ID=${GITEA_OAUTH_CLIENT_ID}
+      - GITEA_OAUTH_CLIENT_SECRET=${GITEA_OAUTH_CLIENT_SECRET}
+      - SECRET_KEY=${DASHBOARD_SECRET_KEY}
+      - ALLOWED_TEAM=${ALLOWED_TEAM}
+    volumes:
+      - ./grades-dashboard/logs:/app/logs
+    networks:
+      - proxy
+      - gitea-network
+      - grades-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grades.entrypoints=https"
+      - "traefik.http.routers.grades.rule=Host(`${DOMAIN_GRADES}`)"
+      - "traefik.http.routers.grades.tls=true"
+      - "traefik.http.routers.grades.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grades.loadbalancer.server.port=8000"
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  proxy:
+    name: proxy
+    driver: bridge
+  gitea-network:
+    name: gitea-network
+    driver: bridge
+    internal: false
+  runner-network:
+    name: runner-network
+    driver: bridge
+    internal: false
+  grades-network:
+    name: grades-network
+    driver: bridge
+    internal: true
+
+# ============================================
+# VOLUMES (optionnel, pour backup facilité)
+# ============================================
+volumes:
+  postgres-data:
+  gitea-data:
+  traefik-acme:

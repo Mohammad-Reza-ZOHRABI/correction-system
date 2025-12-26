@@ -1,0 +1,242 @@
+{
+  "en": {
+    "common": {
+      "login": "Login",
+      "logout": "Logout",
+      "home": "Home",
+      "back": "Back",
+      "search": "Search",
+      "loading": "Loading...",
+      "error": "Error",
+      "success": "Success",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "confirm": "Confirm"
+    },
+    "nav": {
+      "wiki": "Documentation",
+      "gitea": "Gitea",
+      "grades": "Grades",
+      "mail": "Mail"
+    },
+    "wiki": {
+      "title": "Containerization Technologies",
+      "subtitle": "Complete documentation to succeed in your assignments",
+      "search_placeholder": "Search in documentation...",
+      "need_help": "Need help?",
+      "need_help_text": "If you encounter difficulties, first check the FAQ. For any questions, contact your instructor at",
+      "categories": {
+        "getting_started": "🚀 Getting Started",
+        "resources": "📚 Resources",
+        "help": "❓ Help",
+        "tools": "🛠️ Tools",
+        "advanced": "🎓 Advanced"
+      },
+      "quick_links": {
+        "gitea": {
+          "title": "Gitea",
+          "desc": "Access your repositories"
+        },
+        "grades": {
+          "title": "Grades",
+          "desc": "View your results"
+        },
+        "getting_started": {
+          "title": "Getting Started",
+          "desc": "Beginner's guide"
+        },
+        "faq": {
+          "title": "FAQ",
+          "desc": "Frequently asked questions"
+        }
+      }
+    },
+    "dashboard": {
+      "title": "Grades Dashboard",
+      "subtitle": "Containerization Technologies",
+      "stats": {
+        "students": "Students",
+        "assignments": "Assignments",
+        "submissions": "Submissions",
+        "average": "Global Average"
+      },
+      "filters": {
+        "group": "Group",
+        "all_groups": "-- All groups --",
+        "assignment": "Assignment",
+        "all_assignments": "-- All assignments --",
+        "export": "Export CSV"
+      },
+      "table": {
+        "student": "Student",
+        "email": "Email",
+        "assignment": "Assignment",
+        "grade": "Grade",
+        "attempts": "Attempts",
+        "last_submission": "Last Submission",
+        "not_submitted": "Not submitted"
+      },
+      "select_group": "Select a group to view results",
+      "no_data": "No data available"
+    },
+    "correction": {
+      "title": "Automatic Correction Report",
+      "final_grade": "Final Grade",
+      "files": "Files",
+      "build": "Build",
+      "startup": "Startup",
+      "tests": "Functional Tests",
+      "info": "Information",
+      "commit": "Commit",
+      "branch": "Branch",
+      "date": "Date",
+      "repository": "Repository",
+      "points": "points",
+      "passed": "passed",
+      "failed": "failed",
+      "duration": "Duration",
+      "attempts_remaining": "Attempts remaining",
+      "max_attempts_reached": "Maximum attempts reached (5/5)",
+      "warning_attempts": "Warning: You have used {count} out of 5 attempts for this assignment"
+    },
+    "email": {
+      "subject": "🎓 Correction Result - Grade: {grade}/100",
+      "greeting": "Hello {name},",
+      "result_available": "Your automatic correction result is now available.",
+      "attempts_info": "Attempt {current} of {max}",
+      "footer": "Automatic correction generated on",
+      "instructor": "Instructor"
+    },
+    "errors": {
+      "max_attempts": "You have reached the maximum number of attempts (5) for this assignment.",
+      "build_failed": "Build failed",
+      "startup_failed": "Startup failed",
+      "timeout": "Timeout exceeded",
+      "auth_failed": "Authentication failed",
+      "not_found": "Not found",
+      "server_error": "Server error"
+    }
+  },
+  "fr": {
+    "common": {
+      "login": "Connexion",
+      "logout": "Déconnexion",
+      "home": "Accueil",
+      "back": "Retour",
+      "search": "Rechercher",
+      "loading": "Chargement...",
+      "error": "Erreur",
+      "success": "Succès",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "confirm": "Confirmer"
+    },
+    "nav": {
+      "wiki": "Documentation",
+      "gitea": "Gitea",
+      "grades": "Notes",
+      "mail": "Mail"
+    },
+    "wiki": {
+      "title": "Technologies de Containérisation",
+      "subtitle": "Documentation complète pour réussir vos TDs",
+      "search_placeholder": "Rechercher dans la documentation...",
+      "need_help": "Besoin d'aide ?",
+      "need_help_text": "Si vous rencontrez des difficultés, consultez d'abord la FAQ. Pour toute question, contactez votre enseignant à",
+      "categories": {
+        "getting_started": "🚀 Démarrage",
+        "resources": "📚 Ressources",
+        "help": "❓ Aide",
+        "tools": "🛠️ Outils",
+        "advanced": "🎓 Avancé"
+      },
+      "quick_links": {
+        "gitea": {
+          "title": "Gitea",
+          "desc": "Accéder à vos repositories"
+        },
+        "grades": {
+          "title": "Notes",
+          "desc": "Consulter vos résultats"
+        },
+        "getting_started": {
+          "title": "Premiers Pas",
+          "desc": "Guide de démarrage"
+        },
+        "faq": {
+          "title": "FAQ",
+          "desc": "Questions fréquentes"
+        }
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard Notes",
+      "subtitle": "Technologies de Containérisation",
+      "stats": {
+        "students": "Étudiants",
+        "assignments": "TDs",
+        "submissions": "Soumissions",
+        "average": "Moyenne globale"
+      },
+      "filters": {
+        "group": "Groupe",
+        "all_groups": "-- Tous les groupes --",
+        "assignment": "TD",
+        "all_assignments": "-- Tous les TDs --",
+        "export": "Exporter CSV"
+      },
+      "table": {
+        "student": "Étudiant",
+        "email": "Email",
+        "assignment": "TD",
+        "grade": "Note",
+        "attempts": "Tentatives",
+        "last_submission": "Dernière soumission",
+        "not_submitted": "Non soumis"
+      },
+      "select_group": "Sélectionnez un groupe pour voir les résultats",
+      "no_data": "Aucune donnée disponible"
+    },
+    "correction": {
+      "title": "Rapport de Correction Automatique",
+      "final_grade": "Note Finale",
+      "files": "Fichiers",
+      "build": "Build",
+      "startup": "Démarrage",
+      "tests": "Tests Fonctionnels",
+      "info": "Informations",
+      "commit": "Commit",
+      "branch": "Branche",
+      "date": "Date",
+      "repository": "Repository",
+      "points": "points",
+      "passed": "réussis",
+      "failed": "échoués",
+      "duration": "Durée",
+      "attempts_remaining": "Tentatives restantes",
+      "max_attempts_reached": "Nombre maximum de tentatives atteint (5/5)",
+      "warning_attempts": "Attention : Vous avez utilisé {count} tentatives sur 5 pour ce TD"
+    },
+    "email": {
+      "subject": "🎓 Résultat de correction - Note : {grade}/100",
+      "greeting": "Bonjour {name},",
+      "result_available": "Votre résultat de correction automatique est maintenant disponible.",
+      "attempts_info": "Tentative {current} sur {max}",
+      "footer": "Correction automatique générée le",
+      "instructor": "Enseignant"
+    },
+    "errors": {
+      "max_attempts": "Vous avez atteint le nombre maximum de tentatives (5) pour ce TD.",
+      "build_failed": "Échec du build",
+      "startup_failed": "Échec du démarrage",
+      "timeout": "Délai dépassé",
+      "auth_failed": "Échec de l'authentification",
+      "not_found": "Non trouvé",
+      "server_error": "Erreur serveur"
+    }
+  }
+}

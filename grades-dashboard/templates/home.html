@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Grades - Containérisation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body class="bg-gray-50" x-data="dashboardApp()">
+    
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Dashboard Grades</h1>
+                    <p class="text-sm text-gray-600">Technologies de Containérisation</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-700">👤 {{ user.full_name }}</span>
+                    <a href="/logout" class="text-sm text-red-600 hover:text-red-800">Déconnexion</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Statistiques globales -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm font-medium text-gray-600">Étudiants</div>
+                <div class="text-3xl font-bold text-blue-600">{{ stats[0] }}</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm font-medium text-gray-600">TDs</div>
+                <div class="text-3xl font-bold text-green-600">{{ stats[1] }}</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm font-medium text-gray-600">Soumissions</div>
+                <div class="text-3xl font-bold text-purple-600">{{ stats[2] }}</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-sm font-medium text-gray-600">Moyenne globale</div>
+                <div class="text-3xl font-bold text-orange-600">{{ "%.1f"|format(stats[3]) }}</div>
+            </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Groupe</label>
+                    <select x-model="selectedGroupe" @change="loadGroupeData()" 
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Tous les groupes --</option>
+                        {% for groupe in groupes %}
+                        <option value="{{ groupe }}">{{ groupe }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">TD</label>
+                    <select x-model="selectedTD" 
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Tous les TDs --</option>
+                        {% for td in tds %}
+                        <option value="{{ td[1] }}">{{ td[1] }} - {{ td[2] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button @click="exportCSV()" 
+                            class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        📥 Exporter CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tableau des résultats -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Résultats</h2>
+            </div>
+            
+            <div x-show="loading" class="p-8 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p class="mt-2 text-gray-600">Chargement...</p>
+            </div>
+
+            <div x-show="!loading && groupeData.length === 0" class="p-8 text-center text-gray-600">
+                Sélectionnez un groupe pour voir les résultats
+            </div>
+
+            <div x-show="!loading && groupeData.length > 0" class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Étudiant
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Email
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                TD
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Note
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Tentatives
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Dernière soumission
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <template x-for="row in filteredData" :key="row.email + row.td_code">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900" x-text="row.prenom + ' ' + row.nom"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-600" x-text="row.email"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800" 
+                                          x-text="row.td_code"></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span x-show="row.note !== null" 
+                                          :class="{
+                                              'text-green-600 font-semibold': row.note >= 70,
+                                              'text-orange-600 font-semibold': row.note >= 50 && row.note < 70,
+                                              'text-red-600 font-semibold': row.note < 50
+                                          }"
+                                          x-text="row.note ? row.note.toFixed(1) + '/100' : '-'">
+                                    </span>
+                                    <span x-show="row.note === null" class="text-gray-400">
+                                        Non soumis
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600" x-text="row.tentatives"></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    <span x-text="row.derniere_soumission ? formatDate(row.derniere_soumission) : '-'"></span>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function dashboardApp() {
+            return {
+                selectedGroupe: '',
+                selectedTD: '',
+                groupeData: [],
+                loading: false,
+
+                async loadGroupeData() {
+                    if (!this.selectedGroupe) {
+                        this.groupeData = [];
+                        return;
+                    }
+
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`/api/group/${this.selectedGroupe}`);
+                        this.groupeData = await response.json();
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        alert('Erreur lors du chargement des données');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                get filteredData() {
+                    if (!this.selectedTD) {
+                        return this.groupeData;
+                    }
+                    return this.groupeData.filter(row => row.td_code === this.selectedTD);
+                },
+
+                formatDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR');
+                },
+
+                exportCSV() {
+                    if (this.filteredData.length === 0) {
+                        alert('Aucune donnée à exporter');
+                        return;
+                    }
+
+                    const headers = ['Prénom', 'Nom', 'Email', 'TD', 'Note', 'Tentatives', 'Dernière soumission'];
+                    const rows = this.filteredData.map(row => [
+                        row.prenom,
+                        row.nom,
+                        row.email,
+                        row.td_code,
+                        row.note !== null ? row.note.toFixed(1) : 'Non soumis',
+                        row.tentatives,
+                        row.derniere_soumission ? this.formatDate(row.derniere_soumission) : '-'
+                    ]);
+
+                    let csvContent = headers.join(',') + '\n';
+                    rows.forEach(row => {
+                        csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+                    });
+
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `grades_${this.selectedGroupe}_${Date.now()}.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
