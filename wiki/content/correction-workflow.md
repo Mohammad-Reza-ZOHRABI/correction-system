@@ -408,7 +408,7 @@ Bon courage!
 ## 🆘 Support
 
 - 📖 Consultez la [FAQ](/page/faq)
-- 💡 Voir les [Exemples](/page/exemples-projets)
+- 💡 Voir les [Exemples](/page/project-examples)
 - 📧 Contactez : **Reza@zohrabi.fr**
 
 ---

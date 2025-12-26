@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ t('home.title') }}</title>
+
+    <!-- SEO: Hreflang links for multilingual support -->
+    {% for link in hreflang_links %}
+    <link rel="alternate" hreflang="{{ link.lang }}" href="{{ link.url }}">
+    {% endfor %}
+    <link rel="canonical" href="{{ current_url }}">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -32,13 +39,25 @@
     <header class="gradient-bg text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="text-center animate-fade-in">
-                <!-- Language Selector -->
+                <!-- Language Selector (using native language names) -->
                 <div class="absolute top-4 right-4">
-                    <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
-                        <a href="/set-language/en" class="{% if lang == 'en' %}font-bold{% endif %} hover:text-yellow-200 transition">EN</a>
-                        <span>|</span>
-                        <a href="/set-language/fr" class="{% if lang == 'fr' %}font-bold{% endif %} hover:text-yellow-200 transition">FR</a>
-                    </div>
+                    <nav aria-label="Language selection" class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
+                        <a href="/set-language/en"
+                           lang="en"
+                           hreflang="en"
+                           aria-current="{% if lang == 'en' %}page{% else %}false{% endif %}"
+                           class="{% if lang == 'en' %}font-bold{% endif %} hover:text-yellow-200 transition">
+                            English
+                        </a>
+                        <span aria-hidden="true">|</span>
+                        <a href="/set-language/fr"
+                           lang="fr"
+                           hreflang="fr"
+                           aria-current="{% if lang == 'fr' %}page{% else %}false{% endif %}"
+                           class="{% if lang == 'fr' %}font-bold{% endif %} hover:text-yellow-200 transition">
+                            Français
+                        </a>
+                    </nav>
                 </div>
 
                 <h1 class="text-5xl font-bold mb-4">
@@ -50,7 +69,7 @@
 
                 <!-- Search bar -->
                 <div class="max-w-2xl mx-auto">
-                    <form action="/search" method="get" class="relative">
+                    <form action="/{{ lang }}/search" method="get" class="relative">
                         <input
                             type="text"
                             name="q"
@@ -81,13 +100,13 @@
                 <p class="text-sm text-gray-600">{{ t('home.quick_links.grades.desc') }}</p>
             </a>
 
-            <a href="/page/premiers-pas" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
+            <a href="/{{ lang }}/page/getting-started" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">🚀</div>
                 <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.getting_started.title') }}</h3>
                 <p class="text-sm text-gray-600">{{ t('home.quick_links.getting_started.desc') }}</p>
             </a>
 
-            <a href="/page/faq" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
+            <a href="/{{ lang }}/page/faq" class="bg-white rounded-lg shadow-md p-6 text-center card-hover">
                 <div class="text-4xl mb-3">❓</div>
                 <h3 class="font-bold text-gray-900 mb-2">{{ t('home.quick_links.faq.title') }}</h3>
                 <p class="text-sm text-gray-600">{{ t('home.quick_links.faq.desc') }}</p>
@@ -108,7 +127,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for page in pages %}
-                <a href="/page/{{ page.slug }}" class="bg-white rounded-lg shadow-md hover:shadow-xl transition p-6 card-hover">
+                <a href="/{{ lang }}/page/{{ page.slug }}" class="bg-white rounded-lg shadow-md hover:shadow-xl transition p-6 card-hover">
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">
                         {{ page.title }}
                     </h3>

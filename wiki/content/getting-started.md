@@ -263,7 +263,7 @@ git push origin main
 ## 🆘 Besoin d'aide ?
 
 - 📖 Consultez la [FAQ](/page/faq)
-- 💡 Voir les [Exemples de projets](/page/exemples-projets)
+- 💡 Voir les [Exemples de projets](/page/project-examples)
 - 📧 Contactez : admin@zohrabi.cloud
 
 ---

@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} - {{ t('home.title') }}</title>
+
+    <!-- SEO: Hreflang links for multilingual support -->
+    {% for link in hreflang_links %}
+    <link rel="alternate" hreflang="{{ link.lang }}" href="{{ link.url }}">
+    {% endfor %}
+    <link rel="canonical" href="{{ current_url }}">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
@@ -124,17 +131,29 @@
     <header class="gradient-bg text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex items-center justify-between">
-                <a href="/" class="flex items-center space-x-3 hover:opacity-80 transition">
+                <a href="/{{ lang }}/" class="flex items-center space-x-3 hover:opacity-80 transition">
                     <i class="fas fa-home text-2xl"></i>
                     <span class="text-xl font-semibold">{{ t('page.home') }}</span>
                 </a>
                 <div class="flex items-center space-x-6">
-                    <!-- Language Selector -->
-                    <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
-                        <a href="/set-language/en" class="{% if lang == 'en' %}font-bold{% endif %} hover:text-yellow-200 transition">EN</a>
-                        <span>|</span>
-                        <a href="/set-language/fr" class="{% if lang == 'fr' %}font-bold{% endif %} hover:text-yellow-200 transition">FR</a>
-                    </div>
+                    <!-- Language Selector (using native language names) -->
+                    <nav aria-label="Language selection" class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
+                        <a href="/set-language/en"
+                           lang="en"
+                           hreflang="en"
+                           aria-current="{% if lang == 'en' %}page{% else %}false{% endif %}"
+                           class="{% if lang == 'en' %}font-bold{% endif %} hover:text-yellow-200 transition">
+                            English
+                        </a>
+                        <span aria-hidden="true">|</span>
+                        <a href="/set-language/fr"
+                           lang="fr"
+                           hreflang="fr"
+                           aria-current="{% if lang == 'fr' %}page{% else %}false{% endif %}"
+                           class="{% if lang == 'fr' %}font-bold{% endif %} hover:text-yellow-200 transition">
+                            Français
+                        </a>
+                    </nav>
                     <a href="https://git.zohrabi.cloud" target="_blank" class="hover:opacity-80 transition">
                         <i class="fas fa-code-branch mr-2"></i>{{ t('home.quick_links.gitea.title') }}
                     </a>
@@ -158,11 +177,11 @@
         </div>
 
         <!-- Breadcrumb -->
-        <nav class="mb-8">
+        <nav class="mb-8" aria-label="Breadcrumb">
             <ol class="flex items-center space-x-2 text-sm text-gray-600">
-                <li><a href="/" class="hover:text-blue-600">{{ t('page.home') }}</a></li>
-                <li><i class="fas fa-chevron-right text-xs"></i></li>
-                <li class="text-gray-900">{{ title }}</li>
+                <li><a href="/{{ lang }}/" class="hover:text-blue-600">{{ t('page.home') }}</a></li>
+                <li><i class="fas fa-chevron-right text-xs" aria-hidden="true"></i></li>
+                <li class="text-gray-900" aria-current="page">{{ title }}</li>
             </ol>
         </nav>
 
@@ -180,7 +199,7 @@
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {% for page in all_pages[:6] %}
-                <a href="/page/{{ page.slug }}" class="text-blue-600 hover:text-blue-800 hover:underline">
+                <a href="/{{ lang }}/page/{{ page.slug }}" class="text-blue-600 hover:text-blue-800 hover:underline">
                     <i class="fas fa-file-alt mr-2"></i>{{ page.title }}
                 </a>
                 {% endfor %}
@@ -195,8 +214,8 @@
             <div class="text-center text-gray-400">
                 <p>&copy; {{ t('footer.copyright') }}</p>
                 <p class="mt-2">
-                    <a href="/" class="hover:text-white transition">{{ t('page.home') }}</a> |
-                    <a href="/page/faq" class="hover:text-white transition">{{ t('common.faq') }}</a> |
+                    <a href="/{{ lang }}/" class="hover:text-white transition">{{ t('page.home') }}</a> |
+                    <a href="/{{ lang }}/page/faq" class="hover:text-white transition">{{ t('common.faq') }}</a> |
                     <a href="mailto:admin@zohrabi.cloud" class="hover:text-white transition">{{ t('page.contact') }}</a>
                 </p>
             </div>
