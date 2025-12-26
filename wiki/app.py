@@ -122,25 +122,31 @@ async def home(request: Request, lang: Optional[str] = Cookie(default=DEFAULT_LA
     })
 
 @app.get("/page/{page_name}", response_class=HTMLResponse)
-async def show_page(request: Request, page_name: str):
+async def show_page(request: Request, page_name: str, lang: Optional[str] = Cookie(default=DEFAULT_LANGUAGE)):
     """Afficher une page"""
+    # Valider la langue
+    if lang not in ["en", "fr"]:
+        lang = DEFAULT_LANGUAGE
+
     content = get_page_content(page_name)
-    
+
     if not content:
         return templates.TemplateResponse("404.html", {
             "request": request,
             "title": "Page non trouvée"
         }, status_code=404)
-    
+
     # Liste des pages pour la navigation
     all_pages = get_all_pages()
-    
+
     return templates.TemplateResponse("page.html", {
         "request": request,
         "title": content["title"],
         "description": content["description"],
         "content": content["content"],
-        "all_pages": all_pages
+        "all_pages": all_pages,
+        "lang": lang,
+        "t": lambda key: get_translation(lang, key)
     })
 
 @app.get("/set-language/{language}")

@@ -8,6 +8,11 @@
       "faq": "FAQ",
       "for_questions": "For any questions, contact your instructor at"
     },
+    "page": {
+      "home": "Home",
+      "other_pages": "Other pages",
+      "contact": "Contact"
+    },
     "home": {
       "title": "Containerization Technologies",
       "subtitle": "Complete documentation to succeed in your assignments",
@@ -57,6 +62,11 @@
       "contact_instructor": "Si vous rencontrez des difficultés, consultez d'abord la",
       "faq": "FAQ",
       "for_questions": "Pour toute question, contactez votre enseignant à"
+    },
+    "page": {
+      "home": "Accueil",
+      "other_pages": "Autres pages",
+      "contact": "Contact"
     },
     "home": {
       "title": "Technologies de Containérisation",

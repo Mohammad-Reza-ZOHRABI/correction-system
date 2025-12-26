@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} - Technologies de Containérisation</title>
+    <title>{{ title }} - {{ t('home.title') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
@@ -126,14 +126,20 @@
             <div class="flex items-center justify-between">
                 <a href="/" class="flex items-center space-x-3 hover:opacity-80 transition">
                     <i class="fas fa-home text-2xl"></i>
-                    <span class="text-xl font-semibold">Accueil</span>
+                    <span class="text-xl font-semibold">{{ t('page.home') }}</span>
                 </a>
                 <div class="flex items-center space-x-6">
+                    <!-- Language Selector -->
+                    <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
+                        <a href="/set-language/en" class="{% if lang == 'en' %}font-bold{% endif %} hover:text-yellow-200 transition">EN</a>
+                        <span>|</span>
+                        <a href="/set-language/fr" class="{% if lang == 'fr' %}font-bold{% endif %} hover:text-yellow-200 transition">FR</a>
+                    </div>
                     <a href="https://git.zohrabi.cloud" target="_blank" class="hover:opacity-80 transition">
-                        <i class="fas fa-code-branch mr-2"></i>Gitea
+                        <i class="fas fa-code-branch mr-2"></i>{{ t('home.quick_links.gitea.title') }}
                     </a>
                     <a href="https://grades.zohrabi.cloud" target="_blank" class="hover:opacity-80 transition">
-                        <i class="fas fa-chart-bar mr-2"></i>Notes
+                        <i class="fas fa-chart-bar mr-2"></i>{{ t('home.quick_links.grades.title') }}
                     </a>
                 </div>
             </div>
@@ -154,7 +160,7 @@
         <!-- Breadcrumb -->
         <nav class="mb-8">
             <ol class="flex items-center space-x-2 text-sm text-gray-600">
-                <li><a href="/" class="hover:text-blue-600">Accueil</a></li>
+                <li><a href="/" class="hover:text-blue-600">{{ t('page.home') }}</a></li>
                 <li><i class="fas fa-chevron-right text-xs"></i></li>
                 <li class="text-gray-900">{{ title }}</li>
             </ol>
@@ -170,7 +176,7 @@
         <!-- Navigation -->
         <div class="mt-12 bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                <i class="fas fa-book mr-2"></i>Autres pages
+                <i class="fas fa-book mr-2"></i>{{ t('page.other_pages') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {% for page in all_pages[:6] %}
@@ -187,11 +193,11 @@
     <footer class="bg-gray-900 text-white mt-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center text-gray-400">
-                <p>&copy; 2024 Professeur Zohrabi - Technologies de Containérisation</p>
+                <p>&copy; {{ t('footer.copyright') }}</p>
                 <p class="mt-2">
-                    <a href="/" class="hover:text-white transition">Accueil</a> |
-                    <a href="/page/faq" class="hover:text-white transition">FAQ</a> |
-                    <a href="mailto:admin@zohrabi.cloud" class="hover:text-white transition">Contact</a>
+                    <a href="/" class="hover:text-white transition">{{ t('page.home') }}</a> |
+                    <a href="/page/faq" class="hover:text-white transition">{{ t('common.faq') }}</a> |
+                    <a href="mailto:admin@zohrabi.cloud" class="hover:text-white transition">{{ t('page.contact') }}</a>
                 </p>
             </div>
         </div>
