@@ -144,16 +144,10 @@ async def callback(code: str, state: str):
             f"{GITEA_URL}/api/v1/user/teams",
             headers={"Authorization": f"token {access_token}"}
         )
-        
+
         teams = teams_response.json()
         is_teacher = any(team.get("name") == ALLOWED_TEAM for team in teams)
-        
-        if not is_teacher:
-            raise HTTPException(
-                status_code=403,
-                detail="Accès refusé : Vous devez être membre de l'équipe Enseignants"
-            )
-        
+
         # Créer une session
         session_token = secrets.token_urlsafe(32)
         user_sessions[session_token] = {
@@ -161,7 +155,8 @@ async def callback(code: str, state: str):
                 "id": user_info["id"],
                 "username": user_info["login"],
                 "email": user_info["email"],
-                "full_name": user_info.get("full_name", user_info["login"])
+                "full_name": user_info.get("full_name", user_info["login"]),
+                "is_teacher": is_teacher
             },
             "expires_at": datetime.now() + timedelta(hours=8)
         }
