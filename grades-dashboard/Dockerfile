@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11.7-slim-bookworm
 
 WORKDIR /app
 
@@ -15,12 +15,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie de l'application
 COPY . .
 
-# Création du dossier logs
-RUN mkdir -p /app/logs
+# Création du dossier logs et création d'un utilisateur non-root
+RUN mkdir -p /app/logs && \
+    useradd -m -u 1000 grades && \
+    chown -R grades:grades /app
 
 # Variables d'environnement par défaut
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
+
+# Passage à l'utilisateur non-root
+USER grades
 
 # Exposition du port
 EXPOSE 8000

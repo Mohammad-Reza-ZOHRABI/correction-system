@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.base import BaseHTTPMiddleware
 import markdown
 import frontmatter
 from pathlib import Path
@@ -16,6 +17,34 @@ import json
 from urllib.parse import urlparse
 
 app = FastAPI(title="Wiki - Containérisation")
+
+# Security Headers Middleware
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+
+        # Add security headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+
+        # Content Security Policy
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; "
+            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+            "font-src 'self' https://cdnjs.cloudflare.com; "
+            "img-src 'self' data:; "
+            "connect-src 'self';"
+        )
+        response.headers["Content-Security-Policy"] = csp
+
+        return response
+
+# Add middleware
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Configuration
 CONTENT_DIR = Path("content")
@@ -284,22 +313,33 @@ async def set_language(request: Request, language: str):
     if language not in SUPPORTED_LANGUAGES:
         language = DEFAULT_LANGUAGE
 
-    # Get referer to stay on same page
+    # Get referer to stay on same page - with security validation
     referer = request.headers.get("referer", "/")
+    redirect_url = f"/{language}/"
+
     if referer:
         parsed = urlparse(referer)
-        path = parsed.path or "/"
 
-        # Remove old language prefix if present
-        for lang in SUPPORTED_LANGUAGES:
-            if path.startswith(f"/{lang}/"):
-                path = path[len(f"/{lang}"):]
-                break
+        # SECURITY: Validate that referer is from same domain
+        # Only accept relative paths or same-host URLs
+        if parsed.netloc and parsed.netloc not in [DOMAIN, f"www.{DOMAIN}", "localhost", "localhost:8080"]:
+            # Referer from different domain - redirect to home
+            redirect_url = f"/{language}/"
+        else:
+            path = parsed.path or "/"
 
-        # Add new language prefix
-        redirect_url = f"/{language}{path}"
-    else:
-        redirect_url = f"/{language}/"
+            # SECURITY: Prevent path traversal
+            if ".." in path or path.startswith("//"):
+                redirect_url = f"/{language}/"
+            else:
+                # Remove old language prefix if present
+                for lang in SUPPORTED_LANGUAGES:
+                    if path.startswith(f"/{lang}/"):
+                        path = path[len(f"/{lang}"):]
+                        break
+
+                # Add new language prefix
+                redirect_url = f"/{language}{path}"
 
     response = RedirectResponse(url=redirect_url, status_code=302)
     response.set_cookie(

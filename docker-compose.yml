@@ -93,34 +93,40 @@ services:
   # ============================================
   # GITEA ACTIONS RUNNER - CI/CD
   # ============================================
-  gitea-runner:
-    image: gitea/act_runner:latest
-    container_name: gitea-runner
-    restart: unless-stopped
-    depends_on:
-      - gitea
-    environment:
-      - GITEA_INSTANCE_URL=http://gitea:3000
-      - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN}
-      - GITEA_RUNNER_NAME=docker-runner-1
-      - GITEA_RUNNER_LABELS=ubuntu-latest:docker://node:16-bullseye,ubuntu-22.04:docker://node:16-bullseye
-    volumes:
-      - ./gitea-runner/data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - gitea-network
-      - runner-network
-    security_opt:
-      - apparmor=unconfined
-    # Limitations de ressources pour éviter la surcharge
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
+  # SECURITY WARNING: Gitea runner is disabled by default for security reasons
+  # Running student code with Docker socket access is a critical security risk
+  # To enable: uncomment this service AND implement proper sandboxing
+  # ============================================
+  # gitea-runner:
+  #   image: gitea/act_runner:0.2.6  # Pinned version instead of 'latest'
+  #   container_name: gitea-runner
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - gitea
+  #   environment:
+  #     - GITEA_INSTANCE_URL=http://gitea:3000
+  #     - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN}
+  #     - GITEA_RUNNER_NAME=docker-runner-1
+  #     - GITEA_RUNNER_LABELS=ubuntu-latest:docker://node:16-bullseye,ubuntu-22.04:docker://node:16-bullseye
+  #   volumes:
+  #     - ./gitea-runner/data:/data
+  #     # SECURITY: Docker socket removed - use Docker-in-Docker or Podman instead
+  #     # - /var/run/docker.sock:/var/run/docker.sock
+  #   networks:
+  #     - gitea-network
+  #     - runner-network
+  #   # SECURITY: AppArmor protection enabled (removed unconfined)
+  #   # security_opt:
+  #   #   - apparmor=unconfined
+  #   # Limitations de ressources pour éviter la surcharge
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '2'
+  #         memory: 2G
+  #       reservations:
+  #         cpus: '0.5'
+  #         memory: 512M
 
   # ============================================
   # MAILPIT - Serveur SMTP (INTERNE UNIQUEMENT)
