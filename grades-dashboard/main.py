@@ -20,7 +20,8 @@ import json
 
 # Configuration
 DATABASE_URL = os.getenv("DATABASE_URL")
-GITEA_URL = os.getenv("GITEA_URL", "http://gitea:3000")
+GITEA_URL = os.getenv("GITEA_URL", "http://gitea:3000")  # URL interne pour les appels API
+GITEA_PUBLIC_URL = os.getenv("GITEA_PUBLIC_URL", "https://git.zohrabi.cloud")  # URL publique pour OAuth
 OAUTH_CLIENT_ID = os.getenv("GITEA_OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = os.getenv("GITEA_OAUTH_CLIENT_SECRET")
 SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(32))
@@ -72,15 +73,15 @@ def get_db():
 async def get_current_user(request: Request):
     """Vérifie si l'utilisateur est authentifié"""
     session_token = request.cookies.get("session_token")
-    
+
     if not session_token or session_token not in user_sessions:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Non authentifié"
         )
-    
+
     user_data = user_sessions[session_token]
-    
+
     # Vérifier l'expiration
     if datetime.now() > user_data["expires_at"]:
         del user_sessions[session_token]
@@ -88,7 +89,24 @@ async def get_current_user(request: Request):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session expirée"
         )
-    
+
+    return user_data["user"]
+
+# Dépendance optionnelle: Vérifier l'authentification sans lever d'exception
+async def get_current_user_optional(request: Request):
+    """Vérifie si l'utilisateur est authentifié, retourne None si non authentifié"""
+    session_token = request.cookies.get("session_token")
+
+    if not session_token or session_token not in user_sessions:
+        return None
+
+    user_data = user_sessions[session_token]
+
+    # Vérifier l'expiration
+    if datetime.now() > user_data["expires_at"]:
+        del user_sessions[session_token]
+        return None
+
     return user_data["user"]
 
 # Routes d'authentification OAuth2
@@ -97,15 +115,16 @@ async def login():
     """Redirige vers Gitea pour l'authentification"""
     redirect_uri = "https://grades.zohrabi.cloud/callback"
     state = secrets.token_urlsafe(32)
-    
+
+    # Utiliser l'URL publique pour la redirection OAuth (visible par le navigateur)
     auth_url = (
-        f"{GITEA_URL}/login/oauth/authorize"
+        f"{GITEA_PUBLIC_URL}/login/oauth/authorize"
         f"?client_id={OAUTH_CLIENT_ID}"
         f"&redirect_uri={redirect_uri}"
         f"&response_type=code"
         f"&state={state}"
     )
-    
+
     return RedirectResponse(auth_url)
 
 @app.get("/callback")
@@ -188,10 +207,14 @@ async def logout(request: Request):
 async def dashboard(
     request: Request,
     lang: Optional[str] = Cookie(default=DEFAULT_LANGUAGE),
-    user: dict = Depends(get_current_user),
+    user: Optional[dict] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """Page principale du dashboard"""
+
+    # Si l'utilisateur n'est pas authentifié, rediriger vers la page de login
+    if user is None:
+        return RedirectResponse(url="/login", status_code=302)
 
     # Valider la langue
     if lang not in ["en", "fr"]:
