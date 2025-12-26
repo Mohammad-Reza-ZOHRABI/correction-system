@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ t('home.title') }}</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
     <!-- SEO: Hreflang links for multilingual support -->
     {% for link in hreflang_links %}
     <link rel="alternate" hreflang="{{ link.lang }}" href="{{ link.url }}">
