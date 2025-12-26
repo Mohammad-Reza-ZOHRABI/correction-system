@@ -36,6 +36,9 @@
       "description": "Docker containerization course with automatic correction",
       "quick_links": "Quick Links",
       "support": "Support",
+      "about": "About",
+      "instructor": "Instructor",
+      "linkedin_profile": "LinkedIn Profile",
       "copyright": "Reza Zohrabi - Containerization Technologies"
     },
     "categories": {
@@ -83,6 +86,9 @@
       "description": "Cours de containerisation Docker avec correction automatique",
       "quick_links": "Liens rapides",
       "support": "Support",
+      "about": "À propos",
+      "instructor": "Enseignant",
+      "linkedin_profile": "Profil LinkedIn",
       "copyright": "Reza Zohrabi - Containerization Technologies"
     },
     "categories": {

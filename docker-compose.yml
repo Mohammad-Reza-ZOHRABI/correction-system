@@ -123,8 +123,10 @@ services:
           memory: 512M
 
   # ============================================
-  # MAILPIT - Serveur SMTP + Interface Web
+  # MAILPIT - Serveur SMTP (INTERNE UNIQUEMENT)
   # ============================================
+  # Note: Mailpit est un outil de développement pour capturer les emails
+  # Il ne devrait JAMAIS être exposé publiquement sur internet
   mailpit:
     image: axllent/mailpit:latest
     container_name: mailpit
@@ -137,16 +139,10 @@ services:
     volumes:
       - ./mailpit/data:/data
     networks:
-      - proxy
       - gitea-network
       - grades-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.mailpit.entrypoints=https"
-      - "traefik.http.routers.mailpit.rule=Host(`${DOMAIN_MAIL}`)"
-      - "traefik.http.routers.mailpit.tls=true"
-      - "traefik.http.routers.mailpit.tls.certresolver=letsencrypt"
-      - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+    # Interface web accessible uniquement en interne (pas de labels Traefik)
+    # Pour y accéder: docker exec -it mailpit wget -O- http://localhost:8025
 
   # ============================================
   # WIKI - Documentation étudiants
